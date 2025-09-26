@@ -13,6 +13,12 @@
     import FloatingUpload from './FloatingUpload.svelte';
     import FloatingList from './FloatingList.svelte';
 
+    // Disable Mapbox telemetry globally to prevent API key exposure
+    if (typeof window !== 'undefined') {
+        (window as any).mapboxgl = mapboxgl;
+        (window as any).mapboxgl._telemetry = null;
+    }
+
     let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
 	const initialState = { lng: 138.599503, lat: -34.92123, zoom: 11.5 };
@@ -29,8 +35,7 @@
 
     onMount(() => {
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
-        
-        // Disable Mapbox analytics to prevent CORS errors
+
         mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js', null, true);
         
 		map = new mapboxgl.Map({
@@ -38,11 +43,12 @@
             style: darkStyleUrl,
 			center: [initialState.lng, initialState.lat],
 			zoom: initialState.zoom,
-            // Disable analytics to prevent CORS errors
             attributionControl: false,
-            // Suppress WebGL warnings
             preserveDrawingBuffer: true,
-            antialias: false
+            antialias: false,
+            // Disable telemetry and analytics to prevent API key exposure
+            trackResize: false,
+            renderWorldCopies: false
 		});
 
 		// Keep displayed coordinates/zoom in sync with the map
@@ -52,7 +58,13 @@
 			lat = center.lat;
 			zoom = map.getZoom();
 		};
-		map.on('load', update);
+		map.on('load', () => {
+            update();
+            // Disable Mapbox telemetry to prevent API key exposure
+            if (window.mapboxgl && (window.mapboxgl as any)._telemetry) {
+                (window.mapboxgl as any)._telemetry = null;
+            }
+        });
 		map.on('move', update);
         currentStyleUrl = darkStyleUrl;
 	});
