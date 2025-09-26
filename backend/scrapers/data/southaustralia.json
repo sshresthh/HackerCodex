@@ -8,14 +8,18 @@
       "Cafe",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/2025-australian-geographic-nature-photographer-of-the-year"
   },
   {
     "title": "Adelaide Guitar Festival's Guitars in Bars",
     "location": "Adelaide",
     "price": null,
     "dates": "Mon 15th Sep 2025 - Sun 12th Oct 2025 Next Occurrence : Sun 28th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/adelaide-guitar-festivals-guitars-in-bars"
   },
   {
     "title": "Clare Valley @ UnWINEd Uncovered - National Wine Centre",
@@ -25,7 +29,9 @@
     "features": [
       "Bar",
       "Pop Up Wine Bar"
-    ]
+    ],
+    "full_address": "Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/clare-valley-unwined-uncovered-national-wine-centre"
   },
   {
     "title": "AFL Grand Final at The Stag",
@@ -35,7 +41,9 @@
     "features": [
       "Bar",
       "Restaurant"
-    ]
+    ],
+    "full_address": "299 Rundle Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/afl-grand-final-at-the-stag"
   },
   {
     "title": "AFL Grand Final Event",
@@ -44,7 +52,9 @@
     "dates": "Sat 27th Sep 2025 - Sat 27th Sep 2025 Next Occurrence : Sat 27th Sep 2025",
     "features": [
       "Restaurant"
-    ]
+    ],
+    "full_address": "125 North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/afl-grand-final-event"
   },
   {
     "title": "Australian Poetry Slam SA State Final",
@@ -55,21 +65,27 @@
       "Bar",
       "Non Smoking",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "166 Goodwood Road, Goodwood, Adelaide, South Australia, 5034",
+    "link": "https://southaustralia.com/products/adelaide/event/australian-poetry-slam-sa-state-final"
   },
   {
     "title": "Tiny ArtWorks",
     "location": "Adelaide",
     "price": "$0",
     "dates": "Fri 26th Sep 2025 - Thu 30th Oct 2025 Next Occurrence : Sat 27th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "Light Square, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/tiny-artworks"
   },
   {
     "title": "Scents of Place: A Guided Journey",
     "location": "Adelaide",
     "price": "$5",
     "dates": "Thu 25th Sep 2025 - Fri 26th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "56 Gouger Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/scents-of-place-a-guided-journey"
   },
   {
     "title": "ASQ's BIG GIG",
@@ -80,7 +96,9 @@
       "Bar",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "128 King William Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/asqs-big-gig"
   },
   {
     "title": "Opening ARC/BLOOM",
@@ -91,7 +109,9 @@
       "Bar",
       "Non Smoking",
       "Pet Friendly  Enquire"
-    ]
+    ],
+    "full_address": "101 Rundle Mall, Regent Arcade, Shop 37, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/opening-arcbloom"
   },
   {
     "title": "Science in the Pub - The Science of Healthy Aging",
@@ -102,7 +122,9 @@
       "Bar",
       "Non Smoking",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "13-15 Carrington St, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/science-in-the-pub-the-science-of-healthy-aging"
   },
   {
     "title": "Maestros of India – Live in Concert: Presented by Shruthi Adelaide",
@@ -112,7 +134,9 @@
     "features": [
       "Carpark",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "46 Cowan Street, Angle Park, Adelaide, South Australia, 5010",
+    "link": "https://southaustralia.com/products/adelaide/event/maestros-of-india-live-in-concert-presented-by-shruthi-adelaide"
   },
   {
     "title": "Downpour Surrender",
@@ -123,21 +147,27 @@
       "Bar",
       "Carpark",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "21 Playhouse Lane, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/downpour"
   },
   {
     "title": "care—fall opening performance",
     "location": "Adelaide",
     "price": "$0",
     "dates": "Sun 28th Sep 2025 - Sun 28th Sep 2025 Next Occurrence : Sun 28th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "Tynte Place, North Adelaide, Adelaide, South Australia, 5006",
+    "link": "https://southaustralia.com/products/adelaide/event/carefall-opening-performance"
   },
   {
     "title": "Nature Festival of South Australia",
     "location": "Adelaide",
     "price": null,
     "dates": "Fri 26th Sep 2025 - Sun 12th Oct 2025 Next Occurrence : Sun 28th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "Various locations, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/nature-festival-of-south-australia"
   },
   {
     "title": "CheeseFest 2025",
@@ -148,14 +178,18 @@
       "Bar",
       "Cafe",
       "Family Friendly"
-    ]
+    ],
+    "full_address": "Rundle Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/cheesefest-2025"
   },
   {
     "title": "ADL Fashion Week",
     "location": "Adelaide",
     "price": null,
     "dates": "Wed 8th Oct 2025 - Sun 12th Oct 2025 Next Occurrence : Wed 8th Oct 2025",
-    "features": []
+    "features": [],
+    "full_address": "25 Pirie Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/adl-fashion-week"
   },
   {
     "title": "Intergenerational Playgroup, The Learning Tree",
@@ -166,7 +200,9 @@
       "Cafe",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "49 Buxton Street, North Adelaide, Adelaide, South Australia, 5006",
+    "link": "https://southaustralia.com/products/adelaide/event/intergenerational-playgroup-the-learning-tree"
   },
   {
     "title": "Festival of Halloween",
@@ -177,7 +213,9 @@
       "Cafe",
       "Family Friendly",
       "Kiosk"
-    ]
+    ],
+    "full_address": "1 Holland Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/festival-of-halloween"
   },
   {
     "title": "Nature Day in North Adelaide",
@@ -188,14 +226,18 @@
       "Cafe",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "Bundeys Rd, North Adelaide, Adelaide, South Australia, 5006",
+    "link": "https://southaustralia.com/products/adelaide/event/nature-day-in-north-adelaide"
   },
   {
     "title": "Variety Vintage Wine Auction Luncheon",
     "location": "Adelaide",
     "price": "$165",
     "dates": "Fri 26th Sep 2025 - Fri 26th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "Corner Botanic and Hackney Roads, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/variety-vintage-wine-auction-luncheon"
   },
   {
     "title": "Purkarari: Slow down",
@@ -206,14 +248,18 @@
       "Family Friendly",
       "Non Smoking",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "128 King William Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/purkarari-slow-down"
   },
   {
     "title": "Scents of Place: A Guided Journey",
     "location": "Adelaide",
     "price": "$5",
     "dates": "Thu 25th Sep 2025 - Fri 26th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "56 Gouger Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/scents-of-place-a-guided-journey"
   },
   {
     "title": "Opening ARC/BLOOM",
@@ -224,7 +270,9 @@
       "Bar",
       "Non Smoking",
       "Pet Friendly  Enquire"
-    ]
+    ],
+    "full_address": "101 Rundle Mall, Regent Arcade, Shop 37, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/opening-arcbloom"
   },
   {
     "title": "Science in the Pub - The Science of Healthy Aging",
@@ -235,14 +283,18 @@
       "Bar",
       "Non Smoking",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "13-15 Carrington St, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/science-in-the-pub-the-science-of-healthy-aging"
   },
   {
     "title": "Halal Food Festival",
     "location": "Adelaide",
     "price": "$0",
     "dates": "Fri 3rd Oct 2025 - Sun 5th Oct 2025 Next Occurrence : Fri 3rd Oct 2025",
-    "features": []
+    "features": [],
+    "full_address": "Grote Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/halal-food-festival"
   },
   {
     "title": "Harvest Rock",
@@ -253,7 +305,9 @@
       "Bar",
       "Carpark",
       "Coach Parking"
-    ]
+    ],
+    "full_address": "Bartels Road, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/harvest-rock-2025"
   },
   {
     "title": "TIMELIGHT \"Beyond Our Ticking World\"",
@@ -264,14 +318,18 @@
       "Bar",
       "Cafe",
       "Carpark"
-    ]
+    ],
+    "full_address": "63 Light Square, Level 1, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/timelight-beyond-our-ticking-world"
   },
   {
     "title": "Search For A Star Grand Final 2025 – Marshall Hamburger Live In Concert",
     "location": "Adelaide",
     "price": null,
     "dates": "Fri 3rd Oct 2025 - Fri 3rd Oct 2025 Next Occurrence : Fri 3rd Oct 2025",
-    "features": []
+    "features": [],
+    "full_address": "57 Darley Road, Paradise, Adelaide, South Australia, 5075",
+    "link": "https://southaustralia.com/products/adelaide/event/search-for-a-star-grand-final-2025-marshall-hamburger-live-in-concert"
   },
   {
     "title": "INFERNO",
@@ -280,7 +338,9 @@
     "dates": "Fri 27th Jun 2025 - Fri 28th Nov 2025 Next Occurrence : Fri 31st Oct 2025",
     "features": [
       "Bar"
-    ]
+    ],
+    "full_address": "143 Hindley Street, Rooftop, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/inferno"
   },
   {
     "title": "Ryan Adams",
@@ -290,21 +350,27 @@
     "features": [
       "Bar",
       "Carpark"
-    ]
+    ],
+    "full_address": "98 Port Road, Hindmarsh, Adelaide, South Australia, 5007",
+    "link": "https://southaustralia.com/products/adelaide/event/ryan-adams"
   },
   {
     "title": "Echoes of Pink Floyd - 60 Years of Pink Floyd - Adelaide",
     "location": "Adelaide",
     "price": null,
     "dates": "Fri 3rd Oct 2025 - Fri 3rd Oct 2025 Next Occurrence : Fri 3rd Oct 2025",
-    "features": []
+    "features": [],
+    "full_address": "112 Henley Beach Road, Torrensville, Adelaide, South Australia, 5031",
+    "link": "https://southaustralia.com/products/adelaide/event/echoes-of-pink-floyd-60-years-of-pink-floyd-adelaide"
   },
   {
     "title": "Elizabeth Gilbert Live",
     "location": "Adelaide",
     "price": null,
     "dates": "Thu 13th Feb 2025 - Fri 13th Feb 2026 Next Occurrence : Sat 27th Sep 2025",
-    "features": []
+    "features": [],
+    "full_address": "North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/elizabeth-gilbert-live"
   },
   {
     "title": "The Rolling Stones Stripped Acoustic Tribute Show",
@@ -315,7 +381,9 @@
       "Bar",
       "Cafe",
       "Carpark"
-    ]
+    ],
+    "full_address": "109 Goodwood Rd, Goodwood, Adelaide, South Australia, 5034",
+    "link": "https://southaustralia.com/products/adelaide/event/the-rolling-stones-stripped-acoustic-tribute-show"
   },
   {
     "title": "Alice in Wonderland",
@@ -325,7 +393,9 @@
     "features": [
       "Bar",
       "Carpark"
-    ]
+    ],
+    "full_address": "21 Playhouse Lane, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/alice-in-wonderland"
   },
   {
     "title": "The Sound of Music",
@@ -336,7 +406,9 @@
       "Bar",
       "Non Smoking",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "53 Angas St, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/the-sound-of-music"
   },
   {
     "title": "ASQ's BIG GIG",
@@ -347,7 +419,9 @@
       "Bar",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "128 King William Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/asqs-big-gig"
   },
   {
     "title": "Adelaide Town Hall Tour",
@@ -357,7 +431,9 @@
     "features": [
       "Family Friendly",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "128 King William St, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/adelaide-town-hall-tour"
   },
   {
     "title": "Australian Geographic Nature Photographer of the Year",
@@ -368,7 +444,9 @@
       "Cafe",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/2025-australian-geographic-nature-photographer-of-the-year"
   },
   {
     "title": "Markets at the Mill",
@@ -379,21 +457,27 @@
       "Carpark",
       "Coach Parking",
       "Electric Vehicle Charging Point"
-    ]
+    ],
+    "full_address": "9A Mundy Street, Port Adelaide, Adelaide, South Australia, 5015",
+    "link": "https://southaustralia.com/products/adelaide/event/markets-at-the-mill"
   },
   {
     "title": "Nevermind Comedy Club",
     "location": "Adelaide",
     "price": "$20",
     "dates": "Thu 3rd Jul 2025 - Thu 18th Dec 2025 Next Occurrence : Thu 2nd Oct 2025",
-    "features": []
+    "features": [],
+    "full_address": "22A Leigh Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/nevermind-comedy-club"
   },
   {
     "title": "Fair Seafood Cooking Demonstration",
     "location": "Adelaide",
     "price": null,
     "dates": "Fri 13th Jun 2025 - Fri 10th Oct 2025 Next Occurrence : Fri 10th Oct 2025",
-    "features": []
+    "features": [],
+    "full_address": "44-60 GOUGER ST, Information Desk - Ground Floo, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/fair-seafood-cooking-demonstration"
   },
   {
     "title": "Live Music at the Adelaide Central Market",
@@ -404,7 +488,9 @@
       "Bar",
       "Cafe",
       "Carpark"
-    ]
+    ],
+    "full_address": "44-60 Gouger St, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/live-music-at-the-adelaide-central-market"
   },
   {
     "title": "Kings of Comedy's Adelaide Showcase Special",
@@ -415,7 +501,9 @@
       "Bar",
       "Public Toilet",
       "Restaurant"
-    ]
+    ],
+    "full_address": "82 Waymouth Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/kings-of-comedys-adelaide-showcase-special"
   },
   {
     "title": "High Tea at Garçon Bleu",
@@ -426,7 +514,9 @@
       "Bar",
       "Cafe",
       "Carpark"
-    ]
+    ],
+    "full_address": "108 Currie Street, Level 9, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/wine-cheese-masterclass"
   },
   {
     "title": "Futurist Fashion that is out of this world!",
@@ -437,7 +527,9 @@
       "Cafe",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/futurist-fashion-that-is-out-of-this-world"
   },
   {
     "title": "Out on the town!",
@@ -448,7 +540,9 @@
       "Cafe",
       "Family Friendly",
       "Non Smoking"
-    ]
+    ],
+    "full_address": "North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/out-on-the-town"
   },
   {
     "title": "SA Music Hall of Fame Exhibition",
@@ -459,7 +553,9 @@
       "Family Friendly",
       "Non Smoking",
       "Public Toilet"
-    ]
+    ],
+    "full_address": "128 King William Street, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/the-amc-sa-music-hall-of-fame-exhibition"
   },
   {
     "title": "High Tea at InterContinental Adelaide",
@@ -470,7 +566,9 @@
       "Bar",
       "Cafe",
       "ConferenceConvention Facilities"
-    ]
+    ],
+    "full_address": "North Terrace, Adelaide, Adelaide, South Australia, 5000",
+    "link": "https://southaustralia.com/products/adelaide/event/high-tea-1"
   },
   {
     "title": "Sunday's at Cellar II",
@@ -481,6 +579,8 @@
       "Bar",
       "Carpark",
       "Family Friendly"
-    ]
+    ],
+    "full_address": "13-23 Clacton Road, Dover Gardens, Adelaide, South Australia, 5048",
+    "link": "https://southaustralia.com/products/adelaide/event/sundays-at-cellar-ii"
   }
 ]
