@@ -1,5 +1,5 @@
 <script context="module">
-	export const ssr = false;
+	export const ssr = true;
 </script>
 
 <script lang="ts">
@@ -29,8 +29,11 @@
 
     onMount(() => {
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
-        
-        // Disable Mapbox analytics to prevent CORS errors
+
+        // Disable Mapbox analytics to prevent CORS errors when supported
+        if (typeof mapboxgl.setTelemetryEnabled === 'function') {
+            mapboxgl.setTelemetryEnabled(false);
+        }
         mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js', null, true);
         
 		map = new mapboxgl.Map({
@@ -72,13 +75,20 @@
             const form = new FormData();
             form.append('file', file);
             // Use relative path for production, absolute for development
-            const apiUrl = env.PUBLIC_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://127.0.0.1:8000' : '');
+            const apiUrl = env.PUBLIC_API_URL || (
+                typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+                    ? 'http://127.0.0.1:8000'
+                    : ''
+            );
             const endpoint = apiUrl ? `${apiUrl}/api/process-poster` : '/api/process-poster';
             const res = await fetch(endpoint, {
                 method: 'POST',
                 body: form
             });
-            if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+            if (!res.ok) {
+                const detail = await res.text();
+                throw new Error(`Upload failed: ${res.status} ${detail}`);
+            }
             const data = await res.json();
 
             const latNum = parseFloat(String(data?.Latitude ?? ''));

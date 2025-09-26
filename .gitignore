@@ -28,6 +28,7 @@ vite.config.ts.timestamp-*
 __pycache__/
 *.pyc
 .venv/
+venv/
 
 # IDE files
 .vscode/
