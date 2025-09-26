@@ -3,7 +3,6 @@
 
 </script>
 
-<main class="relative h-screen w-full">
+<main class="relative h-screen w-full overflow-hidden">
     <Map />
-    
 </main>

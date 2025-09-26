@@ -55,7 +55,7 @@
 
 <div class="left-gutter">
 	<label class="burger" for="burger">
-		<input id="burger" type="checkbox" onclick={(e) => (navOpen = e.currentTarget.checked)} />
+		<input type="checkbox" id="burger" bind:checked={navOpen}>
 		<span></span>
 		<span></span>
 		<span></span>
@@ -130,6 +130,32 @@
 		height: 100%;
 		inset: 0;
 		left: 60px; /* reserve space for left gutter */
+		overflow: hidden;
+	}
+
+	/* Reset button positioned left of coordinate display */
+	.reset-button {
+		position: absolute;
+		top: 12px;
+		right: 280px; /* position left of coordinate display */
+		background: rgba(255, 255, 255, 0.95);
+		backdrop-filter: blur(8px);
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		border-radius: 8px;
+		padding: 8px 12px;
+		font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+		font-size: 13px;
+		color: #374151;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		z-index: 1;
+		transition: all 0.2s ease;
+	}
+
+	.reset-button:hover {
+		background: rgba(255, 255, 255, 1);
+		transform: translateY(-1px);
+		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 	}
 
 	/* Modern coordinate display in top-right */
@@ -150,6 +176,9 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		max-width: calc(100vw - 80px);
+		overflow: visible;
+		white-space: nowrap;
 	}
 
 	.coordinate-item {
@@ -180,7 +209,7 @@
 		width: 60px;
 		height: 100%;
 		background: #ffffff;
-		z-index: 4; /* keep burger above nav and scrim */
+		z-index: 4;
 		border-right: 1px solid #e5e7eb;
 		box-shadow: 0 0 16px rgba(0, 0, 0, 0.06);
 		display: flex;
@@ -192,21 +221,13 @@
 		gap: 0;
 	}
 
-	/* Modern burger styles */
 	.burger {
 		position: relative;
-		width: 28px;
-		height: 20px;
+		width: 40px;
+		height: 30px;
 		background: transparent;
 		cursor: pointer;
 		display: block;
-		border-radius: 4px;
-		padding: 4px;
-		transition: background-color 0.2s ease;
-	}
-
-	.burger:hover {
-		background-color: rgba(0, 0, 0, 0.05);
 	}
 
 	.burger input {
@@ -216,39 +237,37 @@
 	.burger span {
 		display: block;
 		position: absolute;
-		height: 2px;
+		height: 4px;
 		width: 100%;
-		background: #374151;
-		border-radius: 2px;
+		background: black;
+		border-radius: 9px;
 		opacity: 1;
 		left: 0;
 		transform: rotate(0deg);
-		transition: all 0.25s ease-in-out;
-		transform-origin: center;
+		transition: .25s ease-in-out;
 	}
 
 	.burger span:nth-of-type(1) {
-		top: 0;
+		top: 0px;
 		transform-origin: left center;
 	}
 
 	.burger span:nth-of-type(2) {
 		top: 50%;
 		transform: translateY(-50%);
-		transform-origin: center;
+		transform-origin: left center;
 	}
 
 	.burger span:nth-of-type(3) {
 		top: 100%;
-		transform: translateY(-100%);
 		transform-origin: left center;
+		transform: translateY(-100%);
 	}
 
 	.burger input:checked ~ span:nth-of-type(1) {
 		transform: rotate(45deg);
-		top: 2px;
-		left: 2px;
-		width: 24px;
+		top: 0px;
+		left: 5px;
 	}
 
 	.burger input:checked ~ span:nth-of-type(2) {
@@ -258,9 +277,8 @@
 
 	.burger input:checked ~ span:nth-of-type(3) {
 		transform: rotate(-45deg);
-		top: 18px;
-		left: 2px;
-		width: 24px;
+		top: 28px;
+		left: 5px;
 	}
 
 	.scrim {
@@ -268,6 +286,15 @@
 		inset: 0;
 		background: rgba(0, 0, 0, 0.25);
 		z-index: 2;
+		overflow: hidden;
+	}
+
+	/* Global overflow prevention - only apply to map interface */
+	:global(html, body) {
+		overflow: hidden;
+		height: 100vh;
+		margin: 0;
+		padding: 0;
 	}
 
 	/* Settings button container */
@@ -373,6 +400,7 @@
 		transition: transform 200ms ease-out;
 		display: flex;
 		flex-direction: column;
+		overflow: visible;
 	}
 	.sidenav.open {
 		transform: translateX(0);
@@ -388,8 +416,11 @@
 	}
 	.sidenav-content {
 		padding: 16px 20px;
-		overflow: auto;
+		overflow: hidden;
 		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 	}
 
 	.sidenav-footer {
