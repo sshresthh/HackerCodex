@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		
+		<link rel="modulepreload" href="/_app/immutable/entry/start.BPqLimZa.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/kqQpEp5e.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/BcQEeOxf.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/B-LhNEiM.js">
+		<link rel="modulepreload" href="/_app/immutable/entry/app.D-bfMjtF.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/DsnmJJEf.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/C9Y7xoCE.js">
+		<link rel="modulepreload" href="/_app/env.js">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_49j9t = {
+						base: "",
+						env: null
+					};
+
+					const element = document.currentScript.parentElement;
+
+					import("/_app/env.js").then(({ env }) => {
+						__sveltekit_49j9t.env = env;
+
+						Promise.all([
+							import("/_app/immutable/entry/start.BPqLimZa.js"),
+							import("/_app/immutable/entry/app.D-bfMjtF.js")
+						]).then(([kit, app]) => {
+							kit.start(app, element);
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

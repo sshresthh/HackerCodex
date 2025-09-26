@@ -1,5 +1,5 @@
 <script context="module">
-	export const ssr = true;
+	export const ssr = false;
 </script>
 
 <script lang="ts">
@@ -27,6 +27,8 @@
     let originalFetch: typeof fetch;
 
     onMount(() => {
+        if (!mapContainer) return;
+
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
 
         // Completely disable Mapbox analytics and telemetry to prevent CORS errors
@@ -41,7 +43,7 @@
 
         // Block all network requests to Mapbox analytics
         const blockAnalytics = (url: string) => {
-            return url.includes('events.mapbox.com') || 
+            return url.includes('events.mapbox.com') ||
                    url.includes('analytics.mapbox.com') ||
                    url.includes('api.mapbox.com/events');
         };
@@ -67,43 +69,48 @@
             }
         };
         
-        map = new mapboxgl.Map({
-            container: mapContainer,
-            style: darkStyleUrl,
-            center: [initialState.lng, initialState.lat],
-            zoom: initialState.zoom,
-            attributionControl: false,
-            preserveDrawingBuffer: true,
-            antialias: false,
-            // Block all analytics requests
-            transformRequest: (url, resourceType) => {
-                if (blockAnalytics(url)) {
-                    return { url: '', headers: {} };
+        if (mapContainer) {
+            map = new mapboxgl.Map({
+                container: mapContainer,
+                style: darkStyleUrl,
+                center: [initialState.lng, initialState.lat],
+                zoom: initialState.zoom,
+                attributionControl: false,
+                preserveDrawingBuffer: true,
+                antialias: false,
+                // Block all analytics requests
+                transformRequest: (url, resourceType) => {
+                    if (blockAnalytics(url)) {
+                        return { url: '', headers: {} };
+                    }
+                    return { url };
                 }
-                return { url };
-            }
-        });
+            });
+        }
 
-        // Disable telemetry after map creation
-        map.on('load', () => {
-            if ('setTelemetryEnabled' in mapboxgl) {
-                (mapboxgl as any).setTelemetryEnabled(false);
-            }
-            // Disable events on the map instance
-            if (map && 'setEventManager' in map) {
-                (map as any).setEventManager(null);
-            }
-        });
+        if (map) {
+            // Disable telemetry after map creation
+            map.on('load', () => {
+                if ('setTelemetryEnabled' in mapboxgl) {
+                    (mapboxgl as any).setTelemetryEnabled(false);
+                }
+                // Disable events on the map instance
+                if (map && 'setEventManager' in map) {
+                    (map as any).setEventManager(null);
+                }
+            });
 
-        // Keep displayed coordinates/zoom in sync with the map
-        const update = () => {
-            const center = map.getCenter();
-            lng = center.lng;
-            lat = center.lat;
-            zoom = map.getZoom();
-        };
-        map.on('load', update);
-        map.on('move', update);
+            // Keep displayed coordinates/zoom in sync with the map
+            const update = () => {
+                if (!map) return;
+                const center = map.getCenter();
+                lng = center.lng;
+                lat = center.lat;
+                zoom = map.getZoom();
+            };
+            map.on('load', update);
+            map.on('move', update);
+        }
     });
 
 	onDestroy(() => {
@@ -164,8 +171,10 @@
                     .setPopup(popup)
                     .addTo(map);
 
-                map.flyTo({ center: [lngNum, latNum], zoom: 14, essential: true });
-                popup.addTo(map);
+                if (map) {
+                    map.flyTo({ center: [lngNum, latNum], zoom: 14, essential: true });
+                    popup.addTo(map);
+                }
                 notice = { message: 'Event pinned on the map.', type: 'success' };
                 setTimeout(() => (notice = { message: '', type: 'info' }), 2500);
             } else {

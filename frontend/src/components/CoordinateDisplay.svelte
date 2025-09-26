@@ -1,7 +1,7 @@
 <script lang="ts">
-    export let lng: number;
-    export let lat: number;
-    export let zoom: number;
+    export let lng: number = 0;
+    export let lat: number = 0;
+    export let zoom: number = 0;
 </script>
 
 <div class="coordinate-display">

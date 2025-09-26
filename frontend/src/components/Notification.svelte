@@ -7,7 +7,7 @@
 {#if message}
     <div class="notice {type}">
         <span class="notice-text">{message}</span>
-        <button class="notice-close" aria-label="Close" onclick={onClose}>×</button>
+        <button class="notice-close" aria-label="Close" on:click={onClose}>×</button>
     </div>
 {/if}
 
