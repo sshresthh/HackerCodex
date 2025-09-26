@@ -58,16 +58,13 @@
 
         // Override XMLHttpRequest
         originalXHR = window.XMLHttpRequest;
-        window.XMLHttpRequest = function() {
-            const xhr = new originalXHR();
-            const originalOpen = xhr.open;
-            xhr.open = function(method, url, ...args) {
+        window.XMLHttpRequest = class extends originalXHR {
+            open(method: string, url: string, async?: boolean, user?: string | null, password?: string | null) {
                 if (blockAnalytics(url)) {
                     throw new Error('Blocked analytics request');
                 }
-                return originalOpen.call(this, method, url, ...args);
-            };
-            return xhr;
+                return super.open(method, url, async ?? true, user, password);
+            }
         };
         
         map = new mapboxgl.Map({
