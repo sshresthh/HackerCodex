@@ -9,6 +9,7 @@ const config = {
 
 	kit: {
 		adapter: adapter({
+			pages: 'public', // Change output directory to 'public'
 			fallback: 'index.html' // enable SPA mode
 		}),
 		prerender: {
