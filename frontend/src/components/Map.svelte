@@ -122,3 +122,4 @@
 
 <FloatingUpload on:file={(e) => uploadPoster(e.detail)} disabled={isUploading} />
 <FloatingList on:open={() => (notice = { message: 'List coming soon.', type: 'info' })} />
+
