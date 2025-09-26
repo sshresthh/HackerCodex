@@ -45,9 +45,7 @@ PROMPT = f"""
 
 
 def process_image_with_openai(image_content: bytes) -> dict:
-    """
-    Extract event data from poster image.
-    """
+    """Extract event data from poster image."""
     base64_image = base64.b64encode(image_content).decode('utf-8')
     try:
         response = openai_client.chat.completions.create(
@@ -70,9 +68,6 @@ def process_image_with_openai(image_content: bytes) -> dict:
         )
 
         json_string = response.choices[0].message.content or ""
-
-        # Extract the first JSON object from the response content robustly
-        # Handles cases where the model adds prose around the JSON
         match = re.search(r"\{[\s\S]*\}", json_string)
         if match:
             try:
@@ -80,7 +75,6 @@ def process_image_with_openai(image_content: bytes) -> dict:
             except Exception:
                 pass
 
-        # Fallback minimum object schema
         return {
             "Title": "",
             "Description": "",
@@ -99,28 +93,19 @@ def process_image_with_openai(image_content: bytes) -> dict:
 
 
 def get_coordinates_from_location(location_string: str) -> dict:
-    """
-    Get coordinates from location string using Google Geocoding API.
-    """
+    """Get coordinates from location string using Google Geocoding API."""
     if not location_string:
-        return {
-            "Latitude": "",
-            "Longitude": ""
-        }
+        return {"Latitude": "", "Longitude": ""}
 
     try:
         geocode_result = gmaps.geocode(f"{location_string}, South Australia")
-
         if geocode_result:
             location = geocode_result[0]['geometry']['location']
             return {
                 "Latitude": str(location['lat']),
                 "Longitude": str(location['lng'])
             }
-
     except Exception as e:
         print(f"Error during geocoding: {e}")
-    return {
-        "Latitude": "",
-        "Longitude": ""
-    }
+
+    return {"Latitude": "", "Longitude": ""}

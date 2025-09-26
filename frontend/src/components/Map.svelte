@@ -19,10 +19,7 @@
 	let lng = initialState.lng;
 	let lat = initialState.lat;
 	let zoom = initialState.zoom;
-    let darkMode = true;
-    const lightStyleUrl = 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
     const darkStyleUrl = 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh';
-    let currentStyleUrl = lightStyleUrl;
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
@@ -30,7 +27,7 @@
     onMount(() => {
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
 
-        // Disable Mapbox analytics to prevent CORS errors when supported
+        // Disable Mapbox analytics to prevent CORS errors
         if ('setTelemetryEnabled' in mapboxgl && typeof (mapboxgl as any).setTelemetryEnabled === 'function') {
             (mapboxgl as any).setTelemetryEnabled(false);
         }
@@ -41,9 +38,7 @@
             style: darkStyleUrl,
 			center: [initialState.lng, initialState.lat],
 			zoom: initialState.zoom,
-            // Disable analytics to prevent CORS errors
             attributionControl: false,
-            // Suppress WebGL warnings
             preserveDrawingBuffer: true,
             antialias: false
 		});
@@ -57,16 +52,11 @@
 		};
 		map.on('load', update);
 		map.on('move', update);
-        currentStyleUrl = darkStyleUrl;
 	});
-
-    // Always dark theme
 
 	onDestroy(() => {
 		if (map) map.remove();
 	});
-
-// Minimal UI only
 
     async function uploadPoster(file: File) : Promise<void> {
         if (!file || !map) return;
@@ -76,8 +66,8 @@
             form.append('file', file);
             // Use relative path for production, absolute for development
             const apiUrl = env.PUBLIC_API_URL || (
-                typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-                    ? 'http://127.0.0.1:8000'
+                typeof window !== 'undefined' && ['localhost', '0.0.0.0'].includes(window.location.hostname)
+                    ? 'http://0.0.0.0:8000'
                     : ''
             );
             const endpoint = apiUrl ? `${apiUrl}/api/process-poster` : '/api/process-poster';
@@ -133,7 +123,6 @@
 
 <svelte:head>
 	<title>Mapster</title>
-	<script src="https://kit.fontawesome.com/2df6b0f25d.js" crossorigin="anonymous"></script>
 </svelte:head>
 
 <Notification message={notice.message} type={notice.type} onClose={() => (notice = { message: '', type: 'info' })} />
