@@ -23,39 +23,101 @@
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
+    let originalXHR: typeof XMLHttpRequest;
+    let originalFetch: typeof fetch;
 
     onMount(() => {
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
 
-        // Disable Mapbox analytics to prevent CORS errors
+        // Completely disable Mapbox analytics and telemetry to prevent CORS errors
         if ('setTelemetryEnabled' in mapboxgl && typeof (mapboxgl as any).setTelemetryEnabled === 'function') {
             (mapboxgl as any).setTelemetryEnabled(false);
         }
-        mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js', null, true);
         
-		map = new mapboxgl.Map({
-			container: mapContainer,
+        // Disable events completely
+        if ('setEventManager' in mapboxgl) {
+            (mapboxgl as any).setEventManager(null);
+        }
+
+        // Block all network requests to Mapbox analytics
+        const blockAnalytics = (url: string) => {
+            return url.includes('events.mapbox.com') || 
+                   url.includes('analytics.mapbox.com') ||
+                   url.includes('api.mapbox.com/events');
+        };
+
+        // Override fetch
+        originalFetch = window.fetch;
+        window.fetch = function(input, init) {
+            const url = typeof input === 'string' ? input : input.url;
+            if (blockAnalytics(url)) {
+                return Promise.reject(new Error('Blocked analytics request'));
+            }
+            return originalFetch.call(this, input, init);
+        };
+
+        // Override XMLHttpRequest
+        originalXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function() {
+            const xhr = new originalXHR();
+            const originalOpen = xhr.open;
+            xhr.open = function(method, url, ...args) {
+                if (blockAnalytics(url)) {
+                    throw new Error('Blocked analytics request');
+                }
+                return originalOpen.call(this, method, url, ...args);
+            };
+            return xhr;
+        };
+        
+        map = new mapboxgl.Map({
+            container: mapContainer,
             style: darkStyleUrl,
-			center: [initialState.lng, initialState.lat],
-			zoom: initialState.zoom,
+            center: [initialState.lng, initialState.lat],
+            zoom: initialState.zoom,
             attributionControl: false,
             preserveDrawingBuffer: true,
-            antialias: false
-		});
+            antialias: false,
+            // Block all analytics requests
+            transformRequest: (url, resourceType) => {
+                if (blockAnalytics(url)) {
+                    return { url: '', headers: {} };
+                }
+                return { url };
+            }
+        });
 
-		// Keep displayed coordinates/zoom in sync with the map
-		const update = () => {
-			const center = map.getCenter();
-			lng = center.lng;
-			lat = center.lat;
-			zoom = map.getZoom();
-		};
-		map.on('load', update);
-		map.on('move', update);
-	});
+        // Disable telemetry after map creation
+        map.on('load', () => {
+            if ('setTelemetryEnabled' in mapboxgl) {
+                (mapboxgl as any).setTelemetryEnabled(false);
+            }
+            // Disable events on the map instance
+            if (map && 'setEventManager' in map) {
+                (map as any).setEventManager(null);
+            }
+        });
+
+        // Keep displayed coordinates/zoom in sync with the map
+        const update = () => {
+            const center = map.getCenter();
+            lng = center.lng;
+            lat = center.lat;
+            zoom = map.getZoom();
+        };
+        map.on('load', update);
+        map.on('move', update);
+    });
 
 	onDestroy(() => {
 		if (map) map.remove();
+		// Restore original functions
+		if (originalXHR) {
+			window.XMLHttpRequest = originalXHR;
+		}
+		if (originalFetch) {
+			window.fetch = originalFetch;
+		}
 	});
 
     async function uploadPoster(file: File) : Promise<void> {
