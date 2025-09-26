@@ -49,7 +49,7 @@
         // Override fetch
         originalFetch = window.fetch;
         window.fetch = function(input, init) {
-            const url = typeof input === 'string' ? input : input.url;
+            const url = typeof input === 'string' ? input : input.toString();
             if (blockAnalytics(url)) {
                 return Promise.reject(new Error('Blocked analytics request'));
             }
