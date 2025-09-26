@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Page & timing
 EVENTBRITE_BASE_URL = "https://www.eventbrite.com/d/australia--adelaide/all-events/?page={page}"
@@ -19,3 +22,13 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 OUTPUT_CSV = os.path.join(DATA_DIR, "eventbrite.csv")
 OUTPUT_JSON = os.path.join(DATA_DIR, "eventbrite.json")
+
+FACEBOOK_OUTPUT_JSON = "backend/scrapers/data/facebook.json"
+
+TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
+
+# Existing constants...
+
+SOUTH_AUSTRALIA_BASE_URL = "https://southaustralia.com/destinations/adelaide/what-s-on"
+
+

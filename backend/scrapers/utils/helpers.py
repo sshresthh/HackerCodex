@@ -3,6 +3,8 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
+import json
+import os
 
 
 def parse_event_card(card: WebElement, driver: WebDriver, seen_titles: set[str]):
@@ -90,3 +92,9 @@ def export_to_json(events: list[dict[str, str]], filename: str) -> None:
     df = pd.DataFrame(events)
     df.to_json(filename, orient="records", indent=4)
     print(f"💾 Saved {len(events)} events to {filename}")
+
+def load_json(path):
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
