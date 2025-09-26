@@ -31,8 +31,8 @@
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
 
         // Disable Mapbox analytics to prevent CORS errors when supported
-        if (typeof mapboxgl.setTelemetryEnabled === 'function') {
-            mapboxgl.setTelemetryEnabled(false);
+        if ('setTelemetryEnabled' in mapboxgl && typeof (mapboxgl as any).setTelemetryEnabled === 'function') {
+            (mapboxgl as any).setTelemetryEnabled(false);
         }
         mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js', null, true);
         
