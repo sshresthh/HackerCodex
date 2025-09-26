@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-    import { env as publicEnv } from '$env/dynamic/public';
+    import { env } from '$env/dynamic/public';
 	import mapboxgl from 'mapbox-gl';
 	import 'mapbox-gl/dist/mapbox-gl.css';
 	import './Map.css';
@@ -28,7 +28,7 @@
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
 
     onMount(() => {
-        mapboxgl.accessToken = publicEnv.PUBLIC_MAPBOX_TOKEN || '';
+        mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
 		map = new mapboxgl.Map({
 			container: mapContainer,
             style: darkStyleUrl,
@@ -62,7 +62,8 @@
             isUploading = true;
             const form = new FormData();
             form.append('file', file);
-            const res = await fetch('/api/process-poster', {
+            const apiUrl = env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
+            const res = await fetch(`${apiUrl}/api/process-poster`, {
                 method: 'POST',
                 body: form
             });
