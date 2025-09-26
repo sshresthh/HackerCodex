@@ -1,4 +1,26 @@
-body {
-    margin: 0;
-    padding: 0;
-  }
+/* Global overflow prevention for map interface */
+html, body {
+	overflow: hidden;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+}
+
+/* Reset all elements to prevent unwanted spacing */
+* {
+	box-sizing: border-box;
+}
+
+/* Ensure main container takes full space */
+#app, main {
+	height: 100vh !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	position: relative !important;
+	width: 100vw !important;
+	overflow: hidden !important;
+	background: transparent !important;
+}
