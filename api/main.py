@@ -5,13 +5,18 @@ from processor import process_image_with_openai, get_coordinates_from_location
 
 app = FastAPI()
 
-# CORS for local dev (allow desktop and phone hitting LAN dev server)
-# Using regex to allow http://<any-ip>:5173 and localhost variants
+
+origins = [
+    "https://hacker-codex.vercel.app",
+    "http://localhost:5173",         
+    "http://127.0.0.1:5173",       
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^http://(localhost|127\.0\.0\.1|[0-9\.]+):5173$",
+    allow_origins=origins, 
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"], 
     allow_headers=["*"],
 )
 
