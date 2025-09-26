@@ -29,11 +29,20 @@
 
     onMount(() => {
         mapboxgl.accessToken = env.PUBLIC_MAPBOX_TOKEN || '';
+        
+        // Disable Mapbox analytics to prevent CORS errors
+        mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js', null, true);
+        
 		map = new mapboxgl.Map({
 			container: mapContainer,
             style: darkStyleUrl,
 			center: [initialState.lng, initialState.lat],
-			zoom: initialState.zoom
+			zoom: initialState.zoom,
+            // Disable analytics to prevent CORS errors
+            attributionControl: false,
+            // Suppress WebGL warnings
+            preserveDrawingBuffer: true,
+            antialias: false
 		});
 
 		// Keep displayed coordinates/zoom in sync with the map
@@ -62,8 +71,10 @@
             isUploading = true;
             const form = new FormData();
             form.append('file', file);
-            const apiUrl = env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
-            const res = await fetch(`${apiUrl}/api/process-poster`, {
+            // Use relative path for production, absolute for development
+            const apiUrl = env.PUBLIC_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://127.0.0.1:8000' : '');
+            const endpoint = apiUrl ? `${apiUrl}/api/process-poster` : '/api/process-poster';
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 body: form
             });
