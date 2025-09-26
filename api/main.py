@@ -5,11 +5,11 @@ from processor import process_image_with_openai, get_coordinates_from_location
 app = FastAPI()
 
 origins = [
-    "https://hacker-codex.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5174",
+    "*"
 ]
 
 app.add_middleware(
