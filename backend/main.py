@@ -1,17 +1,20 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from db.firestore_client import insert_event, get_all_events
+from scrapers.eventbrite_scraper import scrape_eventbrite
 
 app = FastAPI()
 
-# Allow all origins for development (be more specific in production)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/")
+def root():
+    return {"message": "MergeMap API is running "}
 
-@app.get("/api/test")
-def read_root():
-    return {"message": "Hello from Python Backend!"}
+@app.get("/events")
+def list_events():
+    return get_all_events()
+
+@app.post("/events/scrape/eventbrite")
+def scrape_and_store_eventbrite():
+    events = scrape_eventbrite()
+    for e in events:
+        insert_event(e)
+    return {"inserted": len(events)}
