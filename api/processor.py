@@ -46,8 +46,7 @@ PROMPT = f"""
 
 def process_image_with_openai(image_content: bytes) -> dict:
     """
-    Takes image bytes, sends them to GPT-4o, and asks it to return structured JSON.
-    It both reads the poster and structures the data.
+    Extract event data from poster image.
     """
     base64_image = base64.b64encode(image_content).decode('utf-8')
     try:
@@ -101,7 +100,7 @@ def process_image_with_openai(image_content: bytes) -> dict:
 
 def get_coordinates_from_location(location_string: str) -> dict:
     """
-    Takes a location string and uses the Google Geocoding API to find its precise latitude and logitute locatons.
+    Get coordinates from location string using Google Geocoding API.
     """
     if not location_string:
         return {
