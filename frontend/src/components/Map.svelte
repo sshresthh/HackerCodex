@@ -2,14 +2,15 @@
 	export const ssr = false;
 </script>
 
-<script>
+<script lang="ts">
+    import { env as publicEnv } from '$env/dynamic/public';
 	import mapboxgl from 'mapbox-gl';
 	import 'mapbox-gl/dist/mapbox-gl.css';
 	import './Map.css';
 	import { onMount, onDestroy } from 'svelte';
 
-	let map;
-	let mapContainer;
+    let map: mapboxgl.Map;
+    let mapContainer: HTMLDivElement;
 	const initialState = { lng: 138.599503, lat: -34.92123, zoom: 11.5 };
 	let lng = initialState.lng;
 	let lat = initialState.lat;
@@ -17,15 +18,15 @@
 	let navOpen = false;
 	let settingsOpen = false;
 	let darkMode = false;
+    const lightStyleUrl = 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
+    const darkStyleUrl = 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh';
+    let currentStyleUrl = lightStyleUrl;
 
-	onMount(() => {
-		mapboxgl.accessToken =
-			'pk.eyJ1IjoiYW5kcndvbmciLCJhIjoiY21nMGVoOXFmMDJoeDJqb2s3dG9oZjl3aCJ9.ksR7Z1KCEONNFmVnKX5Uaw';
+    onMount(() => {
+        mapboxgl.accessToken = publicEnv.PUBLIC_MAPBOX_TOKEN || '';
 		map = new mapboxgl.Map({
 			container: mapContainer,
-			style: darkMode
-				? 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh'
-				: 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21',
+            style: darkMode ? darkStyleUrl : lightStyleUrl,
 			center: [initialState.lng, initialState.lat],
 			zoom: initialState.zoom
 		});
@@ -39,19 +40,17 @@
 		};
 		map.on('load', update);
 		map.on('move', update);
+        currentStyleUrl = darkMode ? darkStyleUrl : lightStyleUrl;
 	});
 
-	// Reactive statement to handle theme changes
-	$: if (map && map.isStyleLoaded()) {
-		const newStyle = darkMode
-			? 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh'
-			: 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
-
-		// Only change style if it's different from current
-		if (map.getStyle().name !== (darkMode ? 'Mapbox Dark' : 'andrwong/cmg0l6d2r001e01ps1i8mgeyh')) {
-			map.setStyle(newStyle);
-		}
-	}
+    // Reactive statement to handle theme changes without redundant setStyle calls
+    $: if (map) {
+        const newStyle = darkMode ? darkStyleUrl : lightStyleUrl;
+        if (newStyle !== currentStyleUrl) {
+            map.setStyle(newStyle);
+            currentStyleUrl = newStyle;
+        }
+    }
 
 	onDestroy(() => {
 		if (map) map.remove();
@@ -65,15 +64,17 @@
 		});
 	}
 
-	function handleClickOutside(event) {
-		if (
-			settingsOpen &&
-			!event.target.closest('.settings-dropdown') &&
-			!event.target.closest('.button')
-		) {
-			settingsOpen = false;
-		}
-	}
+    function handleClickOutside(event: MouseEvent | KeyboardEvent) {
+        const target = event.target as HTMLElement | null;
+        if (
+            settingsOpen &&
+            target &&
+            !target.closest('.settings-dropdown') &&
+            !target.closest('.button')
+        ) {
+            settingsOpen = false;
+        }
+    }
 </script>
 
 <svelte:head>
@@ -125,7 +126,7 @@
 	</div>
 </div>
 
-<div class="map" bind:this={mapContainer} onclick={handleClickOutside}></div>
+<div class="map" bind:this={mapContainer} onclick={handleClickOutside} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClickOutside(e)}></div>
 
 <!-- Coordinate display moved to top-right for better UX -->
 <div class="coordinate-display">
@@ -147,7 +148,7 @@
 
 <!-- menu toggle handled by burger -->
 {#if navOpen}
-	<div class="scrim" onclick={() => (navOpen = false)}></div>
+    <div class="scrim" onclick={() => (navOpen = false)} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (navOpen = false)}></div>
 {/if}
 
 {#if settingsOpen}
