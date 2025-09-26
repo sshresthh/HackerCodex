@@ -18,13 +18,15 @@
 	let lat = initialState.lat;
 	let zoom = initialState.zoom;
 	let navOpen = false;
+	let settingsOpen = false;
+	let darkMode = false;
 
 	onMount(() => {
 		mapboxgl.accessToken =
 			'pk.eyJ1IjoiYW5kcndvbmciLCJhIjoiY21nMGVoOXFmMDJoeDJqb2s3dG9oZjl3aCJ9.ksR7Z1KCEONNFmVnKX5Uaw';
 		map = new mapboxgl.Map({
 			container: mapContainer,
-			style: 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh',
+			style: darkMode ? 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh' : 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21',
 			center: [initialState.lng, initialState.lat],
 			zoom: initialState.zoom
 		});
@@ -40,6 +42,18 @@
 		map.on('move', update);
 	});
 
+	// Reactive statement to handle theme changes
+	$: if (map && map.isStyleLoaded()) {
+		const newStyle = darkMode 
+			? 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh' 
+			: 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
+		
+		// Only change style if it's different from current
+		if (map.getStyle().name !== (darkMode ? 'Mapbox Dark' : 'andrwong/cmg0l6d2r001e01ps1i8mgeyh')) {
+			map.setStyle(newStyle);
+		}
+	}
+
 	onDestroy(() => {
 		if (map) map.remove();
 	});
@@ -50,6 +64,12 @@
 			zoom: initialState.zoom,
 			essential: true
 		});
+	}
+
+	function handleClickOutside(event) {
+		if (settingsOpen && !event.target.closest('.settings-dropdown') && !event.target.closest('.button')) {
+			settingsOpen = false;
+		}
 	}
 </script>
 
@@ -62,7 +82,7 @@
 	</label>
 	<div class="gutter-bottom">
 		<div class="btn-cont">
-			<button class="button" aria-label="Settings">
+			<button class="button" aria-label="Settings" onclick={() => settingsOpen = !settingsOpen}>
 				<svg
 					class="settings-btn"
 					xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +99,7 @@
 	</div>
 </div>
 
-<div class="map" bind:this={mapContainer}></div>
+<div class="map" bind:this={mapContainer} onclick={handleClickOutside}></div>
 
 <!-- Coordinate display moved to top-right for better UX -->
 <div class="coordinate-display">
@@ -100,9 +120,36 @@
 </div>
 
 <!-- menu toggle handled by burger -->
-
 {#if navOpen}
 	<div class="scrim" onclick={() => (navOpen = false)}></div>
+{/if}
+
+{#if settingsOpen}
+	<div class="settings-dropdown">
+		<div class="settings-header">
+			<h3>Settings</h3>
+		</div>
+		<div class="settings-content">
+			<div class="setting-item">
+				<div class="setting-info">
+					<span class="setting-label">Theme</span>
+					<span class="setting-description">Switch between light and dark mode</span>
+				</div>
+				<label>
+					<input class="toggle-checkbox" type="checkbox" bind:checked={darkMode}>
+					<div class="toggle-slot">
+						<div class="sun-icon-wrapper">
+							<div class="iconify sun-icon" data-icon="feather-sun" data-inline="false"></div>
+						</div>
+						<div class="toggle-button"></div>
+						<div class="moon-icon-wrapper">
+							<div class="iconify moon-icon" data-icon="feather-moon" data-inline="false"></div>
+						</div>
+					</div>
+				</label>
+			</div>
+		</div>
+	</div>
 {/if}
 
 <nav class="sidenav {navOpen ? 'open' : ''}" aria-hidden={!navOpen}>
@@ -217,7 +264,7 @@
 		align-items: center;
 		justify-content: flex-start;
 		padding-top: 16px;
-		padding-bottom: 16px;
+		padding-bottom: 20px; /* increased padding to prevent cutoff */
 		gap: 0;
 	}
 
@@ -303,7 +350,7 @@
 		width: 100%;
 		display: flex;
 		justify-content: center;
-		padding-bottom: 4px;
+		padding-bottom: 22px;
 	}
 
 	/* Modern settings button */
@@ -389,7 +436,7 @@
 	.sidenav {
 		position: absolute;
 		top: 0;
-		left: 60px; /* open to the right of the left gutter */
+		left: 60px;
 		height: 100%;
 		width: 300px;
 		background: #ffffff;
@@ -489,5 +536,173 @@
 		background: #ffffff;
 		border-color: #e5e7eb;
 		transform: none;
+	}
+
+	/* Settings dropdown styles */
+	.settings-dropdown {
+		position: absolute;
+		bottom: 60px; /* position above the settings button */
+		left: 70px; /* position to the right of the left gutter */
+		width: 280px;
+		background: #ffffff;
+		border-radius: 12px;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+		z-index: 10;
+		overflow: hidden;
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		animation: slideUp 0.2s ease-out;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+	}
+
+	@keyframes slideUp {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.settings-header {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 16px 20px 12px 20px;
+		border-bottom: 1px solid #f3f4f6;
+		background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	}
+
+	.settings-header h3 {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 600;
+		color: #111827;
+		font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	}
+
+	.settings-content {
+		padding: 16px 20px 20px 20px;
+	}
+
+	.setting-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+	}
+
+	.setting-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.setting-label {
+		font-size: 15px;
+		font-weight: 500;
+		color: #111827;
+	}
+
+	.setting-description {
+		font-size: 13px;
+		color: #6b7280;
+		line-height: 1.4;
+	}
+
+	/* New theme toggle styles */
+	.toggle-checkbox {
+		position: absolute;
+		opacity: 0;
+		cursor: pointer;
+		height: 0;
+		width: 0;
+	}
+
+	.toggle-slot {
+		font-size: 10px;
+		position: relative;
+		height: 3.5em;
+		width: 7em;
+		border: 2px solid;
+        border-color: #9ca3af;
+		border-radius: 10em;
+		background-color: white;
+		transition: background-color 250ms;
+	}
+
+	.toggle-checkbox:checked ~ .toggle-slot {
+		background-color: #374151;
+	}
+
+	.toggle-button {
+		transform: translate(0.3em, 0.25em);
+		position: absolute;
+		height: 3em;
+		width: 3em;
+		border-radius: 50%;
+		background-color: #ffeccf;
+		box-shadow: inset 0px 0px 0px 0.75em #ffbb52;
+		transition: background-color 250ms, border-color 250ms, transform 500ms cubic-bezier(.26,2,.46,.71);
+	}
+
+	.toggle-checkbox:checked ~ .toggle-slot .toggle-button {
+		background-color: #485367;
+		box-shadow: inset 0px 0px 0px 0.75em white;
+		transform: translate(3.65em, 0.25em);
+	}
+
+	.sun-icon {
+		position: absolute;
+		height: 6em;
+		width: 6em;
+		color: #ffbb52;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.2em;
+	}
+
+	.sun-icon-wrapper {
+		position: absolute;
+		height: 6em;
+		width: 6em;
+		opacity: 1;
+		transform: translate(2em, 2em) rotate(15deg);
+		transform-origin: 50% 50%;
+		transition: opacity 150ms, transform 500ms cubic-bezier(.26,2,.46,.71);
+	}
+
+	.toggle-checkbox:checked ~ .toggle-slot .sun-icon-wrapper {
+		opacity: 0;
+		transform: translate(3em, 2em) rotate(0deg);
+	}
+
+	.moon-icon {
+		position: absolute;
+		height: 6em;
+		width: 6em;
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.2em;
+	}
+
+	.moon-icon-wrapper {
+		position: absolute;
+		height: 6em;
+		width: 6em;
+		opacity: 0;
+		transform: translate(11em, 2em) rotate(0deg);
+		transform-origin: 50% 50%;
+		transition: opacity 150ms, transform 500ms cubic-bezier(.26,2.5,.46,.71);
+	}
+
+	.toggle-checkbox:checked ~ .toggle-slot .moon-icon-wrapper {
+		opacity: 1;
+		transform: translate(2em, 2em) rotate(-15deg);
 	}
 </style>
