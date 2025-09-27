@@ -3,15 +3,16 @@
 </script>
 
 <script lang="ts">
-    import { env } from '$env/dynamic/public';
+	import { env } from '$env/dynamic/public';
 	import mapboxgl from 'mapbox-gl';
 	import 'mapbox-gl/dist/mapbox-gl.css';
 	import './Map.css';
 	import { onMount, onDestroy } from 'svelte';
-    import CoordinateDisplay from './CoordinateDisplay.svelte';
-    import Notification from './Notification.svelte';
-    import FloatingUpload from './FloatingUpload.svelte';
-    import FloatingList from './FloatingList.svelte';
+	import { getSupabaseClient } from '$lib/supabaseClient';
+	import CoordinateDisplay from './CoordinateDisplay.svelte';
+	import Notification from './Notification.svelte';
+	import FloatingUpload from './FloatingUpload.svelte';
+	import FloatingList from './FloatingList.svelte';
 
 	let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
@@ -23,11 +24,9 @@
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
-    let originalXHR: typeof XMLHttpRequest;
-    let originalFetch: typeof fetch;
-
-	// API base
-	const apiBase = env.PUBLIC_API_URL || '';
+let originalXHR: typeof XMLHttpRequest;
+let originalFetch: typeof fetch;
+let originalSendBeacon: typeof navigator.sendBeacon | undefined;
 
 	// GeoJSON source id
 	const EVENTS_SOURCE_ID = 'events-source';
@@ -52,28 +51,48 @@
 		return { type: 'FeatureCollection', features } as GeoJSON.FeatureCollection;
 	}
 
-	async function fetchEventsForBounds(): Promise<void> {
-		if (!map) return;
-		const b = map.getBounds();
-		const params = new URLSearchParams({
-			sw_lng: String(b.getWest()),
-			sw_lat: String(b.getSouth()),
-			ne_lng: String(b.getEast()),
-			ne_lat: String(b.getNorth()),
-			limit: '1000'
-		});
-		const url = `${apiBase}/api/events?${params.toString()}`;
-		try {
-			const res = await fetch(url);
-			if (!res.ok) throw new Error(`Events fetch failed: ${res.status}`);
-			const rows = await res.json();
-			const fc = toFeatureCollection(rows || []);
-			const src = map.getSource(EVENTS_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
-			if (src) src.setData(fc as any);
-		} catch (err) {
-			console.error(err);
+const supabase = getSupabaseClient();
+const apiBase = env.PUBLIC_API_URL || '';
+let supabaseWarningShown = false;
+let lastFetchId = 0;
+
+async function fetchEventsForBounds(): Promise<void> {
+	if (!map) return;
+	if (!supabase) {
+		if (!supabaseWarningShown) {
+			supabaseWarningShown = true;
+			notice = { message: 'Supabase not configured. Heatmap data unavailable.', type: 'error' };
+			setTimeout(() => (notice = { message: '', type: 'info' }), 3000);
+			console.warn('Supabase client unavailable. Cannot load events.');
 		}
+		return;
 	}
+	const fetchId = ++lastFetchId;
+	const b = map.getBounds();
+	const swLng = b.getWest();
+	const neLng = b.getEast();
+	const swLat = b.getSouth();
+	const neLat = b.getNorth();
+	try {
+		const { data, error } = await supabase
+			.from('events')
+			.select('id,title,location,time,category,lat,lng')
+			.gte('lng', swLng)
+			.lte('lng', neLng)
+			.gte('lat', swLat)
+			.lte('lat', neLat)
+			.limit(1000);
+		if (fetchId !== lastFetchId) return; // stale response
+		if (error) throw error;
+		const fc = toFeatureCollection(data || []);
+		const src = map.getSource(EVENTS_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+		if (src) src.setData(fc as any);
+	} catch (err) {
+		console.error('Failed to load events from Supabase', err);
+		notice = { message: 'Could not load events. Check Supabase configuration.', type: 'error' };
+		setTimeout(() => (notice = { message: '', type: 'info' }), 3000);
+	}
+}
 
     onMount(() => {
         if (!mapContainer) return;
@@ -91,11 +110,13 @@
         }
 
         // Block all network requests to Mapbox analytics
-        const blockAnalytics = (url: string) => {
-            return url.includes('events.mapbox.com') ||
-                   url.includes('analytics.mapbox.com') ||
-                   url.includes('api.mapbox.com/events');
-        };
+	const blockAnalytics = (url: string) => {
+		return (
+			url.includes('events.mapbox.com') ||
+			url.includes('analytics.mapbox.com') ||
+			url.includes('api.mapbox.com/events')
+		);
+	};
 
         // Override fetch
         originalFetch = window.fetch;
@@ -160,33 +181,22 @@
 						id: HEAT_LAYER_ID,
 						type: 'heatmap',
 						source: EVENTS_SOURCE_ID,
-						maxzoom: 15,
+						maxzoom: 16,
 						paint: {
-							'heatmap-weight': [
-								'interpolate', ['linear'], ['get', 'weight'],
-								0, 0,
-								1, 1
-							],
-							'heatmap-intensity': [
-								'interpolate', ['linear'], ['zoom'],
-								0, 1,
-								15, 3
-							],
+							// emphasise density with a neon palette
+							'heatmap-weight': ['interpolate', ['linear'], ['get', 'weight'], 0, 0.1, 1, 1],
+							'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.6, 10, 1.5, 16, 3.0],
 							'heatmap-color': [
 								'interpolate', ['linear'], ['heatmap-density'],
-								0, 'rgba(0,0,0,0)',
-								0.2, '#1e3a8a',
-								0.4, '#2563eb',
-								0.6, '#60a5fa',
-								0.8, '#93c5fd',
-								1, '#bfdbfe'
+								0.0, 'rgba(0,0,0,0)',
+								0.1, '#0ea5e9',
+								0.3, '#22d3ee',
+								0.5, '#34d399',
+								0.7, '#f59e0b',
+								1.0, '#ef4444'
 							],
-							'heatmap-radius': [
-								'interpolate', ['linear'], ['zoom'],
-								0, 2,
-								15, 30
-							],
-							'heatmap-opacity': 0.9
+							'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 3, 10, 18, 16, 42],
+							'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 16, 0.9]
 						}
 					});
 				}
@@ -195,13 +205,13 @@
 						id: CIRCLE_LAYER_ID,
 						type: 'circle',
 						source: EVENTS_SOURCE_ID,
-						minzoom: 12,
+						minzoom: 11,
 						paint: {
-							'circle-radius': 4,
-							'circle-color': '#1d4ed8',
-							'circle-opacity': 0.85,
+							'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2.5, 16, 6],
+							'circle-color': '#22d3ee',
+							'circle-opacity': 0.95,
 							'circle-stroke-width': 1,
-							'circle-stroke-color': '#93c5fd'
+							'circle-stroke-color': '#0ea5e9'
 						}
 					});
 				}
@@ -242,12 +252,8 @@
             const form = new FormData();
             form.append('file', file);
             // Use relative path for production, absolute for development
-            const apiUrl = env.PUBLIC_API_URL || (
-                typeof window !== 'undefined' && ['localhost', '0.0.0.0'].includes(window.location.hostname)
-                    ? 'http://0.0.0.0:8000'
-                    : ''
-            );
-            const endpoint = apiUrl ? `${apiUrl}/api/process-poster` : '/api/process-poster';
+            const apiUrl = env.PUBLIC_API_URL || '';
+            const endpoint = `${apiUrl ? apiUrl : ''}/api/process-poster`;
             const res = await fetch(endpoint, {
                 method: 'POST',
                 body: form
