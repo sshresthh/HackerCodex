@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import json
 import os
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "experienceadelaide.json")
+DATA_PATH = os.path.join(os.path.dirname(
+    __file__), "data", "experienceadelaide.json")
 
 
 def scrape_experienceadelaide():
@@ -14,14 +15,14 @@ def scrape_experienceadelaide():
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Safari/605.1.15"
     }
 
-    # Step 1: Fetch listing page
+    # Fetch listing page
     resp = requests.get(list_url, headers=headers)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
     events = []
 
-    # Step 2: Loop over event cards
+    # Iterate over event cards
     for card in soup.select("div.card a"):  # each event card is a link
         link = card.get("href")
         if not link.startswith("http"):
@@ -29,7 +30,7 @@ def scrape_experienceadelaide():
 
         title = card.get_text(strip=True)
 
-        # Step 3: Visit each event detail page
+        # Visit each event detail page
         try:
             detail_resp = requests.get(link, headers=headers)
             detail_resp.raise_for_status()
@@ -39,7 +40,8 @@ def scrape_experienceadelaide():
             date = date.get_text(strip=True) if date else None
 
             description = detail_soup.select_one(".card-body")
-            description = description.get_text(strip=True) if description else None
+            description = description.get_text(
+                strip=True) if description else None
 
             location = None
             for p in detail_soup.select("p"):
@@ -56,14 +58,14 @@ def scrape_experienceadelaide():
             })
 
         except Exception as e:
-            print(f"⚠️ Failed to scrape {link}: {e}")
+            print(f"Failed to scrape {link}: {e}")
 
-    # Step 4: Save JSON
+    # Save results to JSON
     os.makedirs(os.path.dirname(DATA_PATH), exist_ok=True)
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
 
-    print(f"🎉 Scraped {len(events)} events from ExperienceAdelaide")
+    print(f"Scraped {len(events)} events from ExperienceAdelaide")
     return events
 
 

@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # save inside backend/scrapers/data/
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "google_events.json")
+DATA_PATH = os.path.join(os.path.dirname(
+    __file__), "data", "google_events.json")
 
 
 def scrape_google_events():
@@ -16,7 +17,7 @@ def scrape_google_events():
 
     params = {
         "engine": "google_events",
-        "q": "events in Adelaide",   #  fixed search
+        "q": "events in Adelaide",  # fixed search
         "hl": "en",
         "gl": "au",
         "api_key": api_key,
@@ -39,7 +40,7 @@ def scrape_google_events():
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
 
-    print(f"🎉 Scraped {len(events)} events from Google Events (Adelaide)")
+    print(f"Scraped {len(events)} events from Google Events (Adelaide)")
     return events
 
 

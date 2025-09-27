@@ -4,7 +4,8 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "adelaidefestival.json")
+DATA_PATH = os.path.join(os.path.dirname(
+    __file__), "data", "adelaidefestival.json")
 BASE_URL = "https://www.adelaidefestivalcentre.com.au"
 
 
@@ -19,7 +20,7 @@ def scrape_adelaidefestival():
     page_url = f"{BASE_URL}/whats-on"
 
     while page_url:
-        print(f"📄 Fetching {page_url}")
+        print(f"Fetching {page_url}")
         resp = requests.get(page_url, headers=headers)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -45,10 +46,12 @@ def scrape_adelaidefestival():
                 date = date_el.get_text(strip=True) if date_el else None
 
                 desc_el = detail_soup.select_one(".event-description, .rte, p")
-                description = desc_el.get_text(" ", strip=True) if desc_el else None
+                description = desc_el.get_text(
+                    " ", strip=True) if desc_el else None
 
                 address = None
-                addr_el = detail_soup.find("address") or detail_soup.select_one(".event-location, .venue, .location")
+                addr_el = detail_soup.find("address") or detail_soup.select_one(
+                    ".event-location, .venue, .location")
                 if addr_el:
                     address = addr_el.get_text(" ", strip=True)
 
@@ -62,10 +65,10 @@ def scrape_adelaidefestival():
 
                 print(f"{title} ({date})")
 
-                time.sleep(0.5)  # be nice to server
+                time.sleep(0.5)  # politeness delay to reduce load
 
             except Exception as e:
-                print(f"⚠️ Failed to scrape {link}: {e}")
+                print(f"Failed to scrape {link}: {e}")
 
         # Pagination
         next_btn = soup.select_one("nav[aria-label=Pagination] a[rel=next]")
@@ -79,7 +82,7 @@ def scrape_adelaidefestival():
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
 
-    print(f"🎭 Scraped {len(events)} events from Adelaide Festival Centre")
+    print(f"Scraped {len(events)} events from Adelaide Festival Centre")
     return events
 
 

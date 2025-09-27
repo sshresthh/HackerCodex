@@ -16,8 +16,10 @@ from utils.helpers import export_to_csv, export_to_json, parse_event_card
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Scrape Eventbrite Adelaide events")
-    parser.add_argument("--pages", type=int, default=1, help="Pages to scrape (default: 1)")
+    parser = argparse.ArgumentParser(
+        description="Scrape Eventbrite Adelaide events")
+    parser.add_argument("--pages", type=int, default=1,
+                        help="Pages to scrape (default: 1)")
     args = parser.parse_args()
 
     opts = Options()
@@ -36,7 +38,8 @@ def main():
             # Wait until at least one card is present or timeout (10s)
             try:
                 WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, EVENT_CARD_SELECTOR))
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, EVENT_CARD_SELECTOR))
                 )
             except Exception:
                 # Save page for inspection on failures
@@ -46,7 +49,7 @@ def main():
                 continue
 
             cards = driver.find_elements(By.CSS_SELECTOR, EVENT_CARD_SELECTOR)
-            print(f"→ Found {len(cards)} cards")
+            print(f"Found {len(cards)} cards")
 
             for c in cards:
                 data = parse_event_card(c, driver, seen)
@@ -60,9 +63,10 @@ def main():
     if events:
         export_to_csv(events, OUTPUT_CSV)
         export_to_json(events, OUTPUT_JSON)
-        print(f"\nScraped {len(events)} events →\n- {OUTPUT_CSV}\n- {OUTPUT_JSON}")
+        print(
+            f"\nScraped {len(events)} events\n- {OUTPUT_CSV}\n- {OUTPUT_JSON}")
     else:
-        print("\n⚠️ No events scraped. Check selectors or debug_page_*.html.")
+        print("\nNo events scraped. Check selectors or debug_page_*.html.")
 
 
 if __name__ == "__main__":

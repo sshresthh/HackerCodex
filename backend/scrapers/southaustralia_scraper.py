@@ -4,7 +4,8 @@ import json
 import os
 
 # File where scraped events will be saved
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "southaustralia.json")
+DATA_PATH = os.path.join(os.path.dirname(
+    __file__), "data", "southaustralia.json")
 
 URL = "https://southaustralia.com/destinations/adelaide/what-s-on"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
@@ -30,10 +31,12 @@ def scrape_southaustralia(limit: int = 50):
         price = card.select_one("span.product-card__price")
         price = price.get_text(strip=True) if price else None
 
-        footer = card.select_one("footer.product-card__footer div.product-card__info")
+        footer = card.select_one(
+            "footer.product-card__footer div.product-card__info")
         date_info = footer.get_text(" ", strip=True) if footer else None
 
-        features = [li.get_text(strip=True) for li in card.select("ul.product-card__features li")]
+        features = [li.get_text(strip=True)
+                    for li in card.select("ul.product-card__features li")]
 
         # --- Extract event detail link ---
         link_tag = card.find_parent("a")
@@ -54,7 +57,7 @@ def scrape_southaustralia(limit: int = 50):
                     full_address = addr_tag.get_text(strip=True)
 
             except Exception as e:
-                print(f"⚠️ Failed to fetch detail page {link}: {e}")
+                print(f"Failed to fetch detail page {link}: {e}")
 
         events.append({
             "title": title,
@@ -71,7 +74,7 @@ def scrape_southaustralia(limit: int = 50):
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Scraped {len(events)} events from SouthAustralia.com")
+    print(f"Scraped {len(events)} events from SouthAustralia.com")
     return events
 
 
