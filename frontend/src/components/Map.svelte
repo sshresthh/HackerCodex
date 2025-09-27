@@ -16,7 +16,7 @@
 
 	let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
-	const initialState = { lng: 138.599503, lat: -34.92123, zoom: 11.5 };
+	const initialState = { lng: 138.5991, lat: -34.9284, zoom:12.93 };
 	let lng = initialState.lng;
 	let lat = initialState.lat;
 	let zoom = initialState.zoom;
@@ -185,18 +185,19 @@ async function fetchEventsForBounds(): Promise<void> {
 						paint: {
 							// emphasise density with a neon palette
 							'heatmap-weight': ['interpolate', ['linear'], ['get', 'weight'], 0, 0.1, 1, 1],
-							'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.6, 10, 1.5, 16, 3.0],
+							'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.4, 10, 1.2, 16, 2.0],
+							// Minimalist single-hue gradient (transparent → subtle cyan)
 							'heatmap-color': [
 								'interpolate', ['linear'], ['heatmap-density'],
 								0.0, 'rgba(0,0,0,0)',
-								0.1, '#0ea5e9',
-								0.3, '#22d3ee',
-								0.5, '#34d399',
-								0.7, '#f59e0b',
-								1.0, '#ef4444'
+								0.2, 'rgba(34,211,238,0.15)',
+								0.4, 'rgba(34,211,238,0.4)',
+								0.7, 'rgba(34,211,238,0.75)',
+								1.0, '#22d3ee'
 							],
-							'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 3, 10, 18, 16, 42],
-							'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 16, 0.9]
+							// Softer radius for cleaner look
+							'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 6, 10, 22, 16, 48],
+							'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 16, 0.85]
 						}
 					});
 				}
@@ -207,11 +208,11 @@ async function fetchEventsForBounds(): Promise<void> {
 						source: EVENTS_SOURCE_ID,
 						minzoom: 11,
 						paint: {
-							'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2.5, 16, 6],
+							'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2, 16, 5],
 							'circle-color': '#22d3ee',
-							'circle-opacity': 0.95,
-							'circle-stroke-width': 1,
-							'circle-stroke-color': '#0ea5e9'
+							'circle-opacity': 0.8,
+							'circle-stroke-width': 0,
+							'circle-stroke-color': 'transparent'
 						}
 					});
 				}
