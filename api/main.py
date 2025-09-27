@@ -1,8 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from processor import process_image_with_openai, get_coordinates_from_location
 from supabase import create_client
 from dotenv import load_dotenv
+from openai import OpenAI
 import hashlib
 import os
 
@@ -29,6 +31,14 @@ app.add_middleware(
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
+AZURE_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-5-mini")
+
+aoai_client = None
+if AZURE_OPENAI_KEY and AZURE_OPENAI_ENDPOINT:
+    aoai_client = OpenAI(api_key=AZURE_OPENAI_KEY, base_url=f"{AZURE_OPENAI_ENDPOINT}openai/v1/")
 
 def _float_or_none(x):
     try:
