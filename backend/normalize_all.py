@@ -25,7 +25,7 @@ def geocode_opencage(address: str):
             coords = data["results"][0]["geometry"]
             return {"lat": coords["lat"], "lng": coords["lng"]}
     except Exception as e:
-        print(f"⚠️ Geocoding failed for {address}: {e}")
+        print(f"Geocoding failed for {address}: {e}")
     return {"lat": None, "lng": None}
 
 # ========= NORMALIZERS =========
@@ -130,7 +130,7 @@ def load_and_normalize():
     for filename, normalizer in NORMALIZERS.items():
         path = os.path.join(DATA_DIR, filename)
         if not os.path.exists(path):
-            print(f"⚠️ Missing file: {filename}")
+            print(f"Missing file: {filename}")
             continue
         with open(path, "r", encoding="utf-8") as f:
             raw_events = json.load(f)
@@ -144,4 +144,4 @@ if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
-    print(f"🎉 Normalized {len(events)} events → {OUTPUT_FILE}")
+    print(f"Normalized {len(events)} events → {OUTPUT_FILE}")

@@ -6,4 +6,4 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "HackerCodex API is running 🚀"}
+    return {"message": "HackerCodex API is running"}
