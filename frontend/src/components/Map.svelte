@@ -69,6 +69,10 @@ async function fetchEventsForBounds(): Promise<void> {
 	}
 	const fetchId = ++lastFetchId;
 	const b = map.getBounds();
+	if (!b) {
+		console.error('Map bounds unavailable.');
+		return;
+	}
 	const swLng = b.getWest();
 	const neLng = b.getEast();
 	const swLat = b.getSouth();
