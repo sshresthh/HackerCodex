@@ -13,7 +13,7 @@
     import FloatingUpload from './FloatingUpload.svelte';
     import FloatingList from './FloatingList.svelte';
 
-    let map: mapboxgl.Map;
+	let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
 	const initialState = { lng: 138.599503, lat: -34.92123, zoom: 11.5 };
 	let lng = initialState.lng;
@@ -25,6 +25,55 @@
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
     let originalXHR: typeof XMLHttpRequest;
     let originalFetch: typeof fetch;
+
+	// API base
+	const apiBase = env.PUBLIC_API_URL || '';
+
+	// GeoJSON source id
+	const EVENTS_SOURCE_ID = 'events-source';
+	const HEAT_LAYER_ID = 'events-heat';
+	const CIRCLE_LAYER_ID = 'events-circle';
+
+	function toFeatureCollection(rows: any[]): GeoJSON.FeatureCollection {
+		const features = rows
+			.filter((r) => Number.isFinite(r?.lng) && Number.isFinite(r?.lat))
+			.map((r) => ({
+				type: 'Feature',
+				geometry: { type: 'Point', coordinates: [r.lng, r.lat] },
+				properties: {
+					title: r.title || 'Event',
+					location: r.location || '',
+					time: r.time || '',
+					category: r.category || '',
+					id: r.id,
+					weight: 1
+				}
+			}));
+		return { type: 'FeatureCollection', features } as GeoJSON.FeatureCollection;
+	}
+
+	async function fetchEventsForBounds(): Promise<void> {
+		if (!map) return;
+		const b = map.getBounds();
+		const params = new URLSearchParams({
+			sw_lng: String(b.getWest()),
+			sw_lat: String(b.getSouth()),
+			ne_lng: String(b.getEast()),
+			ne_lat: String(b.getNorth()),
+			limit: '1000'
+		});
+		const url = `${apiBase}/api/events?${params.toString()}`;
+		try {
+			const res = await fetch(url);
+			if (!res.ok) throw new Error(`Events fetch failed: ${res.status}`);
+			const rows = await res.json();
+			const fc = toFeatureCollection(rows || []);
+			const src = map.getSource(EVENTS_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+			if (src) src.setData(fc as any);
+		} catch (err) {
+			console.error(err);
+		}
+	}
 
     onMount(() => {
         if (!mapContainer) return;
@@ -70,7 +119,7 @@
         };
         
         if (mapContainer) {
-            map = new mapboxgl.Map({
+			map = new mapboxgl.Map({
                 container: mapContainer,
                 style: darkStyleUrl,
                 center: [initialState.lng, initialState.lat],
@@ -89,15 +138,76 @@
         }
 
         if (map) {
-            // Disable telemetry after map creation
+			// Disable telemetry after map creation
             map.on('load', () => {
                 if ('setTelemetryEnabled' in mapboxgl) {
                     (mapboxgl as any).setTelemetryEnabled(false);
                 }
-                // Disable events on the map instance
+				// Disable events on the map instance
                 if (map && 'setEventManager' in map) {
                     (map as any).setEventManager(null);
                 }
+
+				// Add empty GeoJSON source and layers for heatmap + circles
+				if (!map.getSource(EVENTS_SOURCE_ID)) {
+					map.addSource(EVENTS_SOURCE_ID, {
+						type: 'geojson',
+						data: { type: 'FeatureCollection', features: [] }
+					});
+				}
+				if (!map.getLayer(HEAT_LAYER_ID)) {
+					map.addLayer({
+						id: HEAT_LAYER_ID,
+						type: 'heatmap',
+						source: EVENTS_SOURCE_ID,
+						maxzoom: 15,
+						paint: {
+							'heatmap-weight': [
+								'interpolate', ['linear'], ['get', 'weight'],
+								0, 0,
+								1, 1
+							],
+							'heatmap-intensity': [
+								'interpolate', ['linear'], ['zoom'],
+								0, 1,
+								15, 3
+							],
+							'heatmap-color': [
+								'interpolate', ['linear'], ['heatmap-density'],
+								0, 'rgba(0,0,0,0)',
+								0.2, '#1e3a8a',
+								0.4, '#2563eb',
+								0.6, '#60a5fa',
+								0.8, '#93c5fd',
+								1, '#bfdbfe'
+							],
+							'heatmap-radius': [
+								'interpolate', ['linear'], ['zoom'],
+								0, 2,
+								15, 30
+							],
+							'heatmap-opacity': 0.9
+						}
+					});
+				}
+				if (!map.getLayer(CIRCLE_LAYER_ID)) {
+					map.addLayer({
+						id: CIRCLE_LAYER_ID,
+						type: 'circle',
+						source: EVENTS_SOURCE_ID,
+						minzoom: 12,
+						paint: {
+							'circle-radius': 4,
+							'circle-color': '#1d4ed8',
+							'circle-opacity': 0.85,
+							'circle-stroke-width': 1,
+							'circle-stroke-color': '#93c5fd'
+						}
+					});
+				}
+
+				// Load initial events
+				fetchEventsForBounds();
             });
 
             // Keep displayed coordinates/zoom in sync with the map
@@ -108,8 +218,9 @@
                 lat = center.lat;
                 zoom = map.getZoom();
             };
-            map.on('load', update);
-            map.on('move', update);
+			map.on('load', update);
+			map.on('move', update);
+			map.on('moveend', fetchEventsForBounds);
         }
     });
 

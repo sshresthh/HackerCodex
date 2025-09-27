@@ -26,6 +26,8 @@
  * ```
  */
 declare module '$env/static/private' {
+	export const NEXT_PUBLIC_SUPABASE_URL: string;
+	export const NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
 	export const NVM_INC: string;
 	export const MANPATH: string;
 	export const VSCODE_CRASH_REPORTER_PROCESS_TYPE: string;
@@ -64,6 +66,7 @@ declare module '$env/static/private' {
 	export const npm_package_json: string;
 	export const npm_config_engine_strict: string;
 	export const _: string;
+	export const LaunchInstanceID: string;
 	export const npm_config_userconfig: string;
 	export const npm_config_init_module: string;
 	export const __CFBundleIdentifier: string;
@@ -106,6 +109,7 @@ declare module '$env/static/private' {
 	export const OSLogRateLimit: string;
 	export const VSCODE_L10N_BUNDLE_LOCATION: string;
 	export const VSCODE_CWD: string;
+	export const SECURITYSESSIONID: string;
 	export const VAPI_INSTALL: string;
 	export const npm_node_execpath: string;
 	export const npm_config_prefix: string;
@@ -140,6 +144,8 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		NEXT_PUBLIC_SUPABASE_URL: string;
+		NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
 		NVM_INC: string;
 		MANPATH: string;
 		VSCODE_CRASH_REPORTER_PROCESS_TYPE: string;
@@ -178,6 +184,7 @@ declare module '$env/dynamic/private' {
 		npm_package_json: string;
 		npm_config_engine_strict: string;
 		_: string;
+		LaunchInstanceID: string;
 		npm_config_userconfig: string;
 		npm_config_init_module: string;
 		__CFBundleIdentifier: string;
@@ -220,6 +227,7 @@ declare module '$env/dynamic/private' {
 		OSLogRateLimit: string;
 		VSCODE_L10N_BUNDLE_LOCATION: string;
 		VSCODE_CWD: string;
+		SECURITYSESSIONID: string;
 		VAPI_INSTALL: string;
 		npm_node_execpath: string;
 		npm_config_prefix: string;

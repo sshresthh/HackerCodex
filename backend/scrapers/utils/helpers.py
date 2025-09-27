@@ -1,9 +1,9 @@
 import time
-import pandas as pd
+import json
+import csv
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
-import json
 import os
 
 
@@ -75,22 +75,28 @@ def parse_event_card(card: WebElement, driver: WebDriver, seen_titles: set[str])
 
 
 def export_to_csv(events: list[dict[str, str]], filename: str) -> None:
-    """Save scraped events to CSV."""
+    """Save scraped events to CSV (without pandas)."""
     if not events:
         print("⚠️ No events to save to CSV.")
         return
-    df = pd.DataFrame(events)
-    df.to_csv(filename, index=False, encoding="utf-8")
+    fieldnames = sorted({k for e in events for k in e.keys()})
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for e in events:
+            writer.writerow(e)
     print(f"💾 Saved {len(events)} events to {filename}")
 
 
 def export_to_json(events: list[dict[str, str]], filename: str) -> None:
-    """Save scraped events to JSON."""
+    """Save scraped events to JSON (without pandas)."""
     if not events:
         print("⚠️ No events to save to JSON.")
         return
-    df = pd.DataFrame(events)
-    df.to_json(filename, orient="records", indent=4)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(events, f, indent=4, ensure_ascii=False)
     print(f"💾 Saved {len(events)} events to {filename}")
 
 def load_json(path):

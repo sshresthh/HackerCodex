@@ -13,6 +13,7 @@ from utils.constants import (
     WAIT_TIME,
 )
 from utils.helpers import export_to_csv, export_to_json, parse_event_card
+from utils.paths import source_paths
 
 
 def main():
@@ -61,10 +62,14 @@ def main():
         driver.quit()
 
     if events:
-        export_to_csv(events, OUTPUT_CSV)
-        export_to_json(events, OUTPUT_JSON)
-        print(
-            f"\nScraped {len(events)} events\n- {OUTPUT_CSV}\n- {OUTPUT_JSON}")
+        # Write dated and latest files for traceability
+        dated_json, latest_json = source_paths("eventbrite", ext="json")
+        export_to_json(events, dated_json)
+        export_to_json(events, latest_json)
+        dated_csv, latest_csv = source_paths("eventbrite", ext="csv")
+        export_to_csv(events, dated_csv)
+        export_to_csv(events, latest_csv)
+        print(f"\nScraped {len(events)} events\n- {dated_json}\n- {latest_json}\n- {dated_csv}\n- {latest_csv}")
     else:
         print("\nNo events scraped. Check selectors or debug_page_*.html.")
 

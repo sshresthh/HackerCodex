@@ -5,3 +5,6 @@ openai
 googlemaps
 pillow
 requests
+python-dotenv
+httpx
+supabase
