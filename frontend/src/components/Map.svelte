@@ -13,6 +13,7 @@
 	import Notification from './Notification.svelte';
 	import FloatingUpload from './FloatingUpload.svelte';
 	import FloatingList from './FloatingList.svelte';
+	import LayerToggle from './LayerToggle.svelte';
 
 	let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
@@ -33,6 +34,17 @@ let originalSendBeacon: typeof navigator.sendBeacon | undefined;
 	const HEAT_LAYER_ID = 'events-heat';
 	const CIRCLE_LAYER_ID = 'events-circle';
 
+	type LayerMode = 'normal' | 'heat' | 'pins';
+	let layerMode: LayerMode = 'heat';
+
+	function setLayerVisibility(mode: LayerMode) {
+    if (!map) return;
+    const heatVis = mode === 'heat' ? 'visible' : 'none';
+    const circleVis = mode === 'pins' ? 'visible' : 'none';
+    if (map.getLayer(HEAT_LAYER_ID)) map.setLayoutProperty(HEAT_LAYER_ID, 'visibility', heatVis);
+    if (map.getLayer(CIRCLE_LAYER_ID)) map.setLayoutProperty(CIRCLE_LAYER_ID, 'visibility', circleVis);
+}
+
 	function toFeatureCollection(rows: any[]): GeoJSON.FeatureCollection {
 		const features = rows
 			.filter((r) => Number.isFinite(r?.lng) && Number.isFinite(r?.lat))
@@ -44,6 +56,7 @@ let originalSendBeacon: typeof navigator.sendBeacon | undefined;
 					location: r.location || '',
 					time: r.time || '',
 					category: r.category || '',
+					url: r.url || '',
 					id: r.id,
 					weight: 1
 				}
@@ -68,15 +81,11 @@ async function fetchEventsForBounds(): Promise<void> {
 		return;
 	}
 	const fetchId = ++lastFetchId;
-	const b = map.getBounds();
-	if (!b) {
-		console.error('Map bounds unavailable.');
-		return;
-	}
-	const swLng = b.getWest();
-	const neLng = b.getEast();
-	const swLat = b.getSouth();
-	const neLat = b.getNorth();
+	const b = map!.getBounds() as mapboxgl.LngLatBounds;
+	const swLng = b.getWest()!;
+	const neLng = b.getEast()!;
+	const swLat = b.getSouth()!;
+	const neLat = b.getNorth()!;
 	try {
 		const { data, error } = await supabase
 			.from('events')
@@ -143,6 +152,15 @@ async function fetchEventsForBounds(): Promise<void> {
             }
         };
         
+        // Override navigator.sendBeacon
+        originalSendBeacon = navigator.sendBeacon;
+        navigator.sendBeacon = function(url: string | URL, data?: BodyInit): boolean {
+            if (blockAnalytics(typeof url === 'string' ? url : url.toString())) {
+                return false;
+            }
+            return originalSendBeacon ? originalSendBeacon.call(this, url, data) : false;
+        } as any;
+
         if (mapContainer) {
 			map = new mapboxgl.Map({
                 container: mapContainer,
@@ -221,8 +239,35 @@ async function fetchEventsForBounds(): Promise<void> {
 					});
 				}
 
-				// Load initial events
+				// Load initial events and set initial visibility
 				fetchEventsForBounds();
+                setLayerVisibility(layerMode);
+
+                // Circle click popup
+                map.on('click', CIRCLE_LAYER_ID, (ev) => {
+                    const f = ev.features?.[0];
+                    if (!f) return;
+                    const p = f.properties as any;
+                    const title = p.title || 'Event';
+                    const loc = p.location || '';
+                    const time = p.time || '';
+                    const url = p.url || '';
+                    const popupHtml = `
+                        <div class="popup">
+                          <div class="popup-title">${title}</div>
+                          <div class="popup-sub">${time}</div>
+                          <div class="popup-loc">${loc}</div>
+                          ${url ? `<a href="${url}" target="_blank" rel="noopener" class="popup-link">Open link</a>` : ''}
+                        </div>`;
+                    new mapboxgl.Popup({ offset: 18 })
+                      .setLngLat((f.geometry as any).coordinates)
+                      .setHTML(popupHtml)
+                      .addTo(map);
+                });
+
+                // Change cursor to pointer on hover
+                map.on('mouseenter', CIRCLE_LAYER_ID, () => map.getCanvas().style.cursor = 'pointer');
+                map.on('mouseleave', CIRCLE_LAYER_ID, () => map.getCanvas().style.cursor = '');
             });
 
             // Keep displayed coordinates/zoom in sync with the map
@@ -278,12 +323,14 @@ async function fetchEventsForBounds(): Promise<void> {
                     eventMarker.remove();
                 }
 
+                const link = data?.URL ? `<a href="${data.URL}" target="_blank" rel="noopener" class="popup-link">Open link</a>` : '';
                 const popupHtml = `
                     <div class="popup">
                         <div class="popup-title">${data?.Title || 'Event'}</div>
                         <div class="popup-sub">${data?.Date || ''} ${data?.Time || ''}</div>
                         <div class="popup-loc">${data?.Location || ''}</div>
                         <div class="popup-desc">${(data?.Description || '').slice(0, 120)}</div>
+                        ${link}
                     </div>
                 `;
 
@@ -309,6 +356,11 @@ async function fetchEventsForBounds(): Promise<void> {
             isUploading = false;
         }
     }
+
+function handleLayerChange(e: CustomEvent<string>) {
+    layerMode = e.detail as LayerMode;
+    setLayerVisibility(layerMode);
+}
 </script>
 
 <svelte:head>
@@ -320,6 +372,8 @@ async function fetchEventsForBounds(): Promise<void> {
 <div class="map" bind:this={mapContainer}></div>
 
 <CoordinateDisplay {lng} {lat} {zoom} />
+
+<LayerToggle on:change={handleLayerChange} />
 
 <FloatingUpload on:file={(e) => uploadPoster(e.detail)} disabled={isUploading} />
 <FloatingList on:open={() => (notice = { message: 'List coming soon.', type: 'info' })} />

@@ -140,6 +140,11 @@
 	color: #4b5563;
 }
 
+.popup-link {
+  display:inline-block;margin-top:6px;color:#2563eb;font-weight:600;text-decoration:none;
+}
+.popup-link:hover{text-decoration:underline;}
+
 /* Notification styles */
 .notice {
 	position: absolute;

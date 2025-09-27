@@ -4,15 +4,11 @@ import requests
 from dotenv import load_dotenv
 load_dotenv()
 
-
-# ========= CONFIG =========
 DATA_DIR = os.path.join(os.path.dirname(__file__), "scrapers", "data")
 OUTPUT_FILE = os.path.join(DATA_DIR, "normalized_events.json")
 
-# ========= HELPERS =========
 from utils.geocode import geocode_google
 
-# ========= NORMALIZERS =========
 def normalize_adelaidefestival(raw):
     coords = geocode_google(raw.get("address"))
     return {
@@ -114,7 +110,7 @@ def load_and_normalize():
     for filename, normalizer in NORMALIZERS.items():
         path = os.path.join(DATA_DIR, filename)
         if not os.path.exists(path):
-            print(f"⚠️ Missing file: {filename}")
+            print(f"Missing file: {filename}")
             continue
         with open(path, "r", encoding="utf-8") as f:
             raw_events = json.load(f)
@@ -128,4 +124,4 @@ if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
-    print(f"🎉 Normalized {len(events)} events → {OUTPUT_FILE}")
+    print(f"Normalized {len(events)} events → {OUTPUT_FILE}")
