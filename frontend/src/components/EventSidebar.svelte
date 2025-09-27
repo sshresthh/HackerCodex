@@ -30,7 +30,7 @@
 
     let q = supabase
       .from('events')
-      .select('id,title,location,date,time,category,lat,lng,description', { count: 'exact' })
+      .select('id,title,location,date,time,category,lat,lng,description,link', { count: 'exact' })
       .order('date', { ascending: false })
       .order('time', { ascending: false })
       .range(from, to);
@@ -48,7 +48,7 @@
     }
 
     if (reset) {
-      events = data || [];
+      events = (data || []).map((e:any)=>({ ...e, link: e.link || e.url || '' }));
       page = 0;
     } else {
       events = [...events, ...(data || [])];
@@ -70,7 +70,7 @@
   <div class="panel">
     <div class="top">
       <div class="title-row">
-        <div class="title">Events</div>
+        <div class="title">Mapster</div>
       </div>
       <div class="search">
         <svg class="sicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#9ca3af"><path d="M10 4a6 6 0 104.472 10.05l4.239 4.239 1.414-1.414-4.239-4.239A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/></svg>
@@ -99,7 +99,10 @@
               <div class="loc">{ev.location}</div>
             {/if}
             {#if ev.description}
-              <div class="desc">{(ev.description || '').slice(0, 100)}</div>
+              <div class="desc">{ev.description}</div>
+            {/if}
+            {#if ev.link}
+              <a class="alink" href={ev.link} target="_blank" rel="noopener">Visit website →</a>
             {/if}
           </div>
         </button>
@@ -109,10 +112,7 @@
       {/if}
     </div>
 
-    <div class="bottom">
-      <div class="count">{totalShown} shown</div>
-      <button class="more" on:click={loadMore} disabled={loading}>Load more</button>
-    </div>
+    <!-- bottom bar removed -->
   </div>
 </div>
 
@@ -127,7 +127,7 @@
   .panel { width: 100%; height: 100%; display: flex; flex-direction: column; background: rgba(10,12,16,0.92); border: 1px solid rgba(255,255,255,0.06); border-left: none; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
   .top { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
   .title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .title { color: #e5e7eb; font-weight: 800; letter-spacing: 0.2px; }
+  .title { color: #e5e7eb; font-weight: 900; font-size: 18px; letter-spacing: 0.3px; font-family: 'Inter', 'Poppins', system-ui, sans-serif; }
   .search { display: flex; gap: 8px; align-items: center; }
   .sicon { width: 18px; height: 18px; }
   .input { flex: 1; height: 34px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0 10px; color: #f1f5f9; outline: none; }
@@ -144,9 +144,8 @@
   .time { font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: #e5e7eb; border: 1px solid rgba(255,255,255,0.10); }
   .loc { font-size: 12px; color: #9ca3af; margin-top: 2px; }
   .desc { font-size: 12px; color: #cbd5e1; margin-top: 6px; opacity: 0.95; }
-  .bottom { padding: 10px 12px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; }
-  .count { color: #cbd5e1; font-size: 12px; }
-  .more { background: transparent; color: #e5e7eb; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+  .alink { font-size: 12px; color: #38bdf8; text-decoration: underline; margin-top: 4px; display: inline-block; }
+  /* bottom bar removed */
 
   /* Subtle scrollbar */
   .list::-webkit-scrollbar { width: 8px; }

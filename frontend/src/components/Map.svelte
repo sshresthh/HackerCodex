@@ -23,9 +23,10 @@ import EventSidebar from './EventSidebar.svelte';
 	let zoom = initialState.zoom;
     const darkStyleUrl = 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh';
     const lightStyleUrl = 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
-    let theme: 'dark' | 'light' = 'dark';
+    let theme: 'dark' | 'light' = 'light';
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
+    let currentPopup: mapboxgl.Popup | null = null;
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
 let originalXHR: typeof XMLHttpRequest;
 let originalFetch: typeof fetch;
@@ -39,7 +40,7 @@ const HIGHLIGHT_SOURCE_ID = 'highlight-source';
 const HIGHLIGHT_LAYER_ID = 'highlight-circles';
 
 	type LayerMode = 'normal' | 'heat' | 'pins';
-	let layerMode: LayerMode = 'heat';
+    let layerMode: LayerMode = 'pins';
 
 	function setLayerVisibility(mode: LayerMode) {
     if (!map) return;
@@ -60,7 +61,9 @@ const HIGHLIGHT_LAYER_ID = 'highlight-circles';
 					location: r.location || '',
 					time: r.time || '',
 					category: r.category || '',
-					url: r.url || '',
+					date: r.date || '',
+					description: r.description || '',
+					url: r.link || '',
 					id: r.id,
 					weight: 1
 				}
@@ -93,7 +96,7 @@ async function fetchEventsForBounds(): Promise<void> {
 	try {
 		const { data, error } = await supabase
 			.from('events')
-			.select('id,title,location,time,category,lat,lng')
+			.select('id,title,location,date,time,category,lat,lng,description,link')
 			.gte('lng', swLng)
 			.lte('lng', neLng)
 			.gte('lat', swLat)
@@ -167,10 +170,7 @@ async function fetchEventsForBounds(): Promise<void> {
             (mapboxgl as any).setTelemetryEnabled(false);
         }
         
-        // Disable events completely
-        if ('setEventManager' in mapboxgl) {
-            (mapboxgl as any).setEventManager(null);
-        }
+        // (events remain enabled to allow popups on pin click)
 
         // Block all network requests to Mapbox analytics
 	const blockAnalytics = (url: string) => {
@@ -182,13 +182,13 @@ async function fetchEventsForBounds(): Promise<void> {
 	};
 
         // Override fetch
-        originalFetch = window.fetch;
-        window.fetch = function(input, init) {
+        originalFetch = window.fetch.bind(window) as typeof fetch;
+        window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
             const url = typeof input === 'string' ? input : input.toString();
             if (blockAnalytics(url)) {
                 return Promise.reject(new Error('Blocked analytics request'));
             }
-            return originalFetch.call(this, input, init);
+            return originalFetch(input as any, init as any);
         };
 
         // Override XMLHttpRequest
@@ -208,7 +208,7 @@ async function fetchEventsForBounds(): Promise<void> {
             if (blockAnalytics(typeof url === 'string' ? url : url.toString())) {
                 return false;
             }
-            return originalSendBeacon ? originalSendBeacon.call(this, url, data) : false;
+            return originalSendBeacon ? (originalSendBeacon as any).call(navigator, url, data) : false;
         } as any;
 
         if (mapContainer) {
@@ -236,10 +236,7 @@ map = new mapboxgl.Map({
                 if ('setTelemetryEnabled' in mapboxgl) {
                     (mapboxgl as any).setTelemetryEnabled(false);
                 }
-				// Disable events on the map instance
-                if (map && 'setEventManager' in map) {
-                    (map as any).setEventManager(null);
-                }
+                // (events remain enabled to allow popups on pin click)
 
 // Add empty GeoJSON source and layers for heatmap + circles + highlight
 				if (!map.getSource(EVENTS_SOURCE_ID)) {
@@ -301,16 +298,21 @@ map = new mapboxgl.Map({
                     const p = f.properties as any;
                     const title = p.title || 'Event';
                     const loc = p.location || '';
+                    const dateStr = p.date || '';
                     const time = p.time || '';
                     const url = p.url || '';
+                    const desc = p.description || '';
+                    const linkHtml = url ? `<a href="${url}" target="_blank" rel="noopener" class="popup-link">Visit website →</a>` : '';
                     const popupHtml = `
                         <div class="popup">
                           <div class="popup-title">${title}</div>
-                          <div class="popup-sub">${time}</div>
+                          <div class="popup-sub">${dateStr} ${time}</div>
                           <div class="popup-loc">${loc}</div>
-                          ${url ? `<a href="${url}" target="_blank" rel="noopener" class="popup-link">Open link</a>` : ''}
+                          ${desc ? `<div class="popup-desc">${desc}</div>` : ''}
+                          ${linkHtml}
                         </div>`;
-                    new mapboxgl.Popup({ offset: 18 })
+                    if (currentPopup) currentPopup.remove();
+                    currentPopup = new mapboxgl.Popup({ offset: 18 })
                       .setLngLat((f.geometry as any).coordinates)
                       .setHTML(popupHtml)
                       .addTo(map);
@@ -505,8 +507,10 @@ map = new mapboxgl.Map({
                     .addTo(map);
 
                 if (map) {
-                    map.flyTo({ center: [lngNum, latNum], zoom: 14, essential: true });
-                    popup.addTo(map);
+                    map.flyTo({ center: [lngNum, latNum], zoom: 15, essential: true });
+
+                    // Refresh layers so the new event stored in Supabase appears in heatmap/pins for future sessions
+                    fetchEventsForBounds();
                 }
                 notice = { message: 'Event pinned on the map.', type: 'success' };
                 setTimeout(() => (notice = { message: '', type: 'info' }), 2500);
@@ -537,6 +541,39 @@ function focusOnItems(items: any[]) {
     if (feats.length === 1) {
       const [lng, lat] = (feats[0].geometry as any).coordinates;
       map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 14), essential: true });
+
+      // Show popup after fly completes to avoid flicker
+      const ev = items[0];
+      if (ev) {
+        const showPopup = () => {
+          const title = ev.title || 'Event';
+          const loc = ev.location || '';
+          const dateStr = ev.date || '';
+          const time = ev.time || '';
+          const desc = ev.description || '';
+          const url = ev.link || '';
+          const linkHtml = url ? `<a href="${url}" target="_blank" rel="noopener" class="popup-link">Visit website →</a>` : '';
+          const popupHtml = `
+            <div class="popup">
+              <div class="popup-title">${title}</div>
+              <div class="popup-sub">${dateStr} ${time}</div>
+              <div class="popup-loc">${loc}</div>
+              ${desc ? `<div class="popup-desc">${desc}</div>` : ''}
+              ${linkHtml}
+            </div>`;
+          if (currentPopup) currentPopup.remove();
+          currentPopup = new mapboxgl.Popup({ offset: 18 })
+            .setLngLat([lng, lat])
+            .setHTML(popupHtml)
+            .addTo(map);
+        };
+        if (map.isMoving()) {
+          map.once('moveend', showPopup);
+        } else {
+          showPopup();
+        }
+      }
+
     } else if (feats.length > 1) {
       const bounds = new mapboxgl.LngLatBounds();
       feats.forEach((f: any) => bounds.extend(f.geometry.coordinates as [number, number]));
