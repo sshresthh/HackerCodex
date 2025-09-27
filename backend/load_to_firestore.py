@@ -7,7 +7,7 @@ def load_and_insert_all():
         source = os.path.basename(fname).replace(".json", "")
         normalizer = NORMALIZERS.get(source)
         if not normalizer:
-            print(f"⚠️ No normalizer for {source}, skipping")
+            print(f"No normalizer for {source}, skipping")
             continue
 
         with open(fname, encoding="utf-8") as f:
