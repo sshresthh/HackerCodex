@@ -189,14 +189,8 @@
 
 /* Mobile responsive */
 @media (max-width: 640px) {
-	.coordinate-display {
-		top: auto;
-		bottom: 12px;
-		right: 12px;
-		padding: 6px 10px;
-		font-size: 12px;
-		gap: 6px;
-	}
+	/* Hide coordinate bar on mobile */
+	.coordinate-display { display: none; }
 
 	.notice {
 		left: 64px;
@@ -223,4 +217,7 @@
 		transform: translateX(-50%);
 		z-index: 12;
 	}
+
+	/* Hide Mapbox logo on mobile */
+	.mapboxgl-ctrl-logo { display: none !important; }
 }

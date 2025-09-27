@@ -10,10 +10,10 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { getSupabaseClient } from '$lib/supabaseClient';
 	import CoordinateDisplay from './CoordinateDisplay.svelte';
-	import Notification from './Notification.svelte';
-	import FloatingUpload from './FloatingUpload.svelte';
-	import FloatingList from './FloatingList.svelte';
-	import LayerToggle from './LayerToggle.svelte';
+import Notification from './Notification.svelte';
+import FabMenu from './FabMenu.svelte';
+import LoadingOverlay from './LoadingOverlay.svelte';
+import EventSidebar from './EventSidebar.svelte';
 
 	let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
@@ -22,6 +22,8 @@
 	let lat = initialState.lat;
 	let zoom = initialState.zoom;
     const darkStyleUrl = 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh';
+    const lightStyleUrl = 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
+    let theme: 'dark' | 'light' = 'dark';
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
@@ -32,7 +34,9 @@ let originalSendBeacon: typeof navigator.sendBeacon | undefined;
 	// GeoJSON source id
 	const EVENTS_SOURCE_ID = 'events-source';
 	const HEAT_LAYER_ID = 'events-heat';
-	const CIRCLE_LAYER_ID = 'events-circle';
+const PIN_LAYER_ID = 'events-pin';
+const HIGHLIGHT_SOURCE_ID = 'highlight-source';
+const HIGHLIGHT_LAYER_ID = 'highlight-circles';
 
 	type LayerMode = 'normal' | 'heat' | 'pins';
 	let layerMode: LayerMode = 'heat';
@@ -40,9 +44,9 @@ let originalSendBeacon: typeof navigator.sendBeacon | undefined;
 	function setLayerVisibility(mode: LayerMode) {
     if (!map) return;
     const heatVis = mode === 'heat' ? 'visible' : 'none';
-    const circleVis = mode === 'pins' ? 'visible' : 'none';
+    const pinVis = mode === 'pins' ? 'visible' : 'none';
     if (map.getLayer(HEAT_LAYER_ID)) map.setLayoutProperty(HEAT_LAYER_ID, 'visibility', heatVis);
-    if (map.getLayer(CIRCLE_LAYER_ID)) map.setLayoutProperty(CIRCLE_LAYER_ID, 'visibility', circleVis);
+    if (map.getLayer(PIN_LAYER_ID)) map.setLayoutProperty(PIN_LAYER_ID, 'visibility', pinVis);
 }
 
 	function toFeatureCollection(rows: any[]): GeoJSON.FeatureCollection {
@@ -107,6 +111,52 @@ async function fetchEventsForBounds(): Promise<void> {
 	}
 }
 
+    function drawPinToCanvas(size: number, themeNow: 'dark' | 'light', baseColor?: string) {
+        const canvas = document.createElement('canvas');
+        const pr = 2;
+        canvas.width = size * pr;
+        canvas.height = size * pr;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return { canvas, imageData: null as ImageData | null };
+        ctx.scale(pr, pr);
+        const w = size, h = size; // square canvas, pin centered
+        const cx = w / 2;
+        const cy = h * 0.38;
+        const r = h * 0.22;
+        const tipY = h * 0.78;
+
+        const primary = baseColor || (themeNow === 'dark' ? '#67e8f9' : '#2563eb'); // high-contrast to background
+        const top = themeNow === 'dark' ? '#e0f2fe' : '#c7d2fe';
+        const bottom = themeNow === 'dark' ? '#0b1220' : '#1f2937';
+
+        // minimalist circle pin
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.7, 0, Math.PI * 2);
+        ctx.fillStyle = primary;
+        ctx.fill();
+        // subtle white outline for visibility
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = themeNow === 'dark' ? '#0f172a' : '#ffffff';
+        ctx.stroke();
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        return { canvas, imageData };
+    }
+
+    function addEventPinImage() {
+        if (!map) return;
+        const id = 'event-pin';
+        if (map.hasImage(id)) map.removeImage(id);
+        const { imageData } = drawPinToCanvas(64, theme);
+        if (imageData) map.addImage(id, imageData, { pixelRatio: 2 });
+    }
+
+    function getPosterPinDataURL() {
+        // Larger, same scheme, to emphasize uploaded poster pin
+        const { canvas } = drawPinToCanvas(88, theme);
+        return canvas.toDataURL('image/png');
+    }
+
     onMount(() => {
         if (!mapContainer) return;
 
@@ -162,9 +212,9 @@ async function fetchEventsForBounds(): Promise<void> {
         } as any;
 
         if (mapContainer) {
-			map = new mapboxgl.Map({
+map = new mapboxgl.Map({
                 container: mapContainer,
-                style: darkStyleUrl,
+                style: theme === 'dark' ? darkStyleUrl : lightStyleUrl,
                 center: [initialState.lng, initialState.lat],
                 zoom: initialState.zoom,
                 attributionControl: false,
@@ -191,7 +241,7 @@ async function fetchEventsForBounds(): Promise<void> {
                     (map as any).setEventManager(null);
                 }
 
-				// Add empty GeoJSON source and layers for heatmap + circles
+// Add empty GeoJSON source and layers for heatmap + circles + highlight
 				if (!map.getSource(EVENTS_SOURCE_ID)) {
 					map.addSource(EVENTS_SOURCE_ID, {
 						type: 'geojson',
@@ -205,46 +255,47 @@ async function fetchEventsForBounds(): Promise<void> {
 						source: EVENTS_SOURCE_ID,
 						maxzoom: 16,
 						paint: {
-							// emphasise density with a neon palette
-							'heatmap-weight': ['interpolate', ['linear'], ['get', 'weight'], 0, 0.1, 1, 1],
-							'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.4, 10, 1.2, 16, 2.0],
-							// Minimalist single-hue gradient (transparent → subtle cyan)
-							'heatmap-color': [
+							// Aurora gradient tuned for the dark basemap
+							'heatmap-weight': ['interpolate', ['linear'], ['get', 'weight'], 0, 0.15, 1, 1],
+'heatmap-color': [
 								'interpolate', ['linear'], ['heatmap-density'],
-								0.0, 'rgba(0,0,0,0)',
-								0.2, 'rgba(34,211,238,0.15)',
-								0.4, 'rgba(34,211,238,0.4)',
-								0.7, 'rgba(34,211,238,0.75)',
-								1.0, '#22d3ee'
+								0.00, 'rgba(0,0,0,0)',
+								0.15, 'rgba(0,255,220,0.18)',   /* neon aqua */
+								0.35, 'rgba(34,211,238,0.55)',   /* cyan */
+								0.60, 'rgba(168,85,247,0.80)',    /* violet */
+								0.85, 'rgba(244,63,94,0.90)',     /* neon pink/red */
+								1.00, '#f43f5e'
 							],
-							// Softer radius for cleaner look
-							'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 6, 10, 22, 16, 48],
-							'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 16, 0.85]
+							// Stronger neon glow
+							'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 8, 10, 28, 16, 56],
+							'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 16, 0.95],
+							'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 10, 1.3, 16, 2.2]
 						}
 					});
 				}
-				if (!map.getLayer(CIRCLE_LAYER_ID)) {
-					map.addLayer({
-						id: CIRCLE_LAYER_ID,
-						type: 'circle',
-						source: EVENTS_SOURCE_ID,
-						minzoom: 11,
-						paint: {
-							'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2, 16, 5],
-							'circle-color': '#22d3ee',
-							'circle-opacity': 0.8,
-							'circle-stroke-width': 0,
-							'circle-stroke-color': 'transparent'
-						}
-					});
-				}
+                // Pin symbol layer
+                addEventPinImage();
+                if (!map.getLayer(PIN_LAYER_ID)) {
+                    map.addLayer({
+                        id: PIN_LAYER_ID,
+                        type: 'symbol',
+                        source: EVENTS_SOURCE_ID,
+                        minzoom: 11,
+                        layout: {
+                            'icon-image': 'event-pin',
+'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.35, 14, 0.45, 17, 0.55],
+                            'icon-allow-overlap': true,
+                            'icon-anchor': 'bottom'
+                        }
+                    });
+                }
 
 				// Load initial events and set initial visibility
 				fetchEventsForBounds();
                 setLayerVisibility(layerMode);
 
-                // Circle click popup
-                map.on('click', CIRCLE_LAYER_ID, (ev) => {
+                // Pin click popup
+                map.on('click', PIN_LAYER_ID, (ev) => {
                     const f = ev.features?.[0];
                     if (!f) return;
                     const p = f.properties as any;
@@ -266,8 +317,115 @@ async function fetchEventsForBounds(): Promise<void> {
                 });
 
                 // Change cursor to pointer on hover
-                map.on('mouseenter', CIRCLE_LAYER_ID, () => map.getCanvas().style.cursor = 'pointer');
-                map.on('mouseleave', CIRCLE_LAYER_ID, () => map.getCanvas().style.cursor = '');
+                map.on('mouseenter', PIN_LAYER_ID, () => map.getCanvas().style.cursor = 'pointer');
+                map.on('mouseleave', PIN_LAYER_ID, () => map.getCanvas().style.cursor = '');
+
+                // Highlight source/layer for search/chat results
+                if (!map.getSource(HIGHLIGHT_SOURCE_ID)) {
+                    map.addSource(HIGHLIGHT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+                }
+                if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
+                    map.addLayer({
+                        id: HIGHLIGHT_LAYER_ID,
+                        type: 'circle',
+                        source: HIGHLIGHT_SOURCE_ID,
+                        paint: {
+                            'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 4, 14, 8, 17, 12],
+                            'circle-color': '#ffffff',
+                            'circle-opacity': 0.95,
+                            'circle-stroke-width': 2,
+                            'circle-stroke-color': '#38bdf8'
+                        }
+                    });
+                }
+            });
+
+            // Re-create layers when style changes (e.g., theme toggle)
+            map.on('style.load', () => {
+                // Add sources
+                if (!map.getSource(EVENTS_SOURCE_ID)) {
+                    map.addSource(EVENTS_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+                }
+                // Heat layer (theme-specific)
+                if (!map.getLayer(HEAT_LAYER_ID)) {
+                    map.addLayer({
+                        id: HEAT_LAYER_ID,
+                        type: 'heatmap',
+                        source: EVENTS_SOURCE_ID,
+                        maxzoom: 16,
+                        paint: theme === 'dark' ? {
+                            'heatmap-weight': ['interpolate', ['linear'], ['get', 'weight'], 0, 0.2, 1, 1],
+                            'heatmap-color': [
+                                'interpolate', ['linear'], ['heatmap-density'],
+                                0.00, 'rgba(0,0,0,0)',
+                                0.15, 'rgba(0,255,220,0.18)',
+                                0.35, 'rgba(34,211,238,0.55)',
+                                0.60, 'rgba(168,85,247,0.80)',
+                                0.85, 'rgba(244,63,94,0.90)',
+                                1.00, '#f43f5e'
+                            ],
+                            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 8, 10, 28, 16, 56],
+                            'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 16, 0.95],
+                            'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 10, 1.3, 16, 2.2]
+                        } : {
+                            // Light theme
+                            'heatmap-weight': ['interpolate', ['linear'], ['get', 'weight'], 0, 0.2, 1, 1],
+                            'heatmap-color': [
+                                'interpolate', ['linear'], ['heatmap-density'],
+                                0.00, 'rgba(0,0,0,0)',
+                                0.2, 'rgba(14,165,233,0.25)',
+                                0.4, 'rgba(2,132,199,0.5)',
+                                0.7, 'rgba(59,130,246,0.85)',
+                                1.0, '#0ea5e9'
+                            ],
+                            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 6, 10, 24, 16, 48],
+                            'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 16, 0.9]
+                        }
+                    });
+                }
+                // Pin symbol layer (re-add after style change)
+                addEventPinImage();
+                if (!map.getLayer(PIN_LAYER_ID)) {
+                    map.addLayer({
+                        id: PIN_LAYER_ID,
+                        type: 'symbol',
+                        source: EVENTS_SOURCE_ID,
+                        minzoom: 11,
+                        layout: {
+                            'icon-image': 'event-pin',
+'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.35, 14, 0.45, 17, 0.55],
+                            'icon-allow-overlap': true,
+                            'icon-anchor': 'bottom'
+                        }
+                    });
+                }
+                // Highlight source/layer
+                if (!map.getSource(HIGHLIGHT_SOURCE_ID)) {
+                    map.addSource(HIGHLIGHT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+                }
+                if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
+                    map.addLayer({
+                        id: HIGHLIGHT_LAYER_ID,
+                        type: 'circle',
+                        source: HIGHLIGHT_SOURCE_ID,
+                        paint: theme === 'dark' ? {
+                            'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 4, 14, 8, 17, 12],
+                            'circle-color': '#ffffff',
+                            'circle-opacity': 0.95,
+                            'circle-stroke-width': 2,
+                            'circle-stroke-color': '#38bdf8'
+                        } : {
+                            'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 4, 14, 8, 17, 12],
+                            'circle-color': '#0ea5e9',
+                            'circle-opacity': 0.9,
+                            'circle-stroke-width': 2,
+                            'circle-stroke-color': '#0369a1'
+                        }
+                    });
+                }
+
+                setLayerVisibility(layerMode);
+                fetchEventsForBounds();
             });
 
             // Keep displayed coordinates/zoom in sync with the map
@@ -302,8 +460,9 @@ async function fetchEventsForBounds(): Promise<void> {
             const form = new FormData();
             form.append('file', file);
             // Use relative path for production, absolute for development
-            const apiUrl = env.PUBLIC_API_URL || '';
-            const endpoint = `${apiUrl ? apiUrl : ''}/api/process-poster`;
+            const apiUrlRaw = env.PUBLIC_API_URL || '';
+            const apiUrl = apiUrlRaw && !/^https?:\/\//i.test(apiUrlRaw) ? `https://${apiUrlRaw}` : apiUrlRaw;
+            const endpoint = `${apiUrl ? apiUrl.replace(/\/$/, '') : ''}/api/process-poster`;
             const res = await fetch(endpoint, {
                 method: 'POST',
                 body: form
@@ -335,7 +494,12 @@ async function fetchEventsForBounds(): Promise<void> {
                 `;
 
                 const popup = new mapboxgl.Popup({ offset: 18 }).setHTML(popupHtml);
-                eventMarker = new mapboxgl.Marker({ color: '#2563eb' })
+                const el = document.createElement('img');
+                el.src = getPosterPinDataURL();
+                el.style.width = '64px';
+                el.style.height = '64px';
+                el.style.transform = 'translateY(6px)';
+                eventMarker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
                     .setLngLat([lngNum, latNum])
                     .setPopup(popup)
                     .addTo(map);
@@ -357,6 +521,37 @@ async function fetchEventsForBounds(): Promise<void> {
         }
     }
 
+function focusOnItems(items: any[]) {
+    if (!map || !items || !items.length) return;
+    const feats = items
+      .filter((r) => Number.isFinite(r?.lng) && Number.isFinite(r?.lat))
+      .map((r) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [r.lng, r.lat] },
+        properties: { title: r.title || 'Event' }
+      }));
+    const fc = { type: 'FeatureCollection', features: feats } as any;
+    const src = map.getSource(HIGHLIGHT_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    if (src) src.setData(fc);
+
+    if (feats.length === 1) {
+      const [lng, lat] = (feats[0].geometry as any).coordinates;
+      map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 14), essential: true });
+    } else if (feats.length > 1) {
+      const bounds = new mapboxgl.LngLatBounds();
+      feats.forEach((f: any) => bounds.extend(f.geometry.coordinates as [number, number]));
+      map.fitBounds(bounds, { padding: 80, duration: 800, essential: true });
+    }
+  }
+
+function handleThemeChange(e: CustomEvent<string>) {
+    const next = (e.detail as 'dark' | 'light');
+    theme = next;
+    if (map) {
+        map.setStyle(theme === 'dark' ? darkStyleUrl : lightStyleUrl);
+    }
+}
+
 function handleLayerChange(e: CustomEvent<string>) {
     layerMode = e.detail as LayerMode;
     setLayerVisibility(layerMode);
@@ -368,13 +563,21 @@ function handleLayerChange(e: CustomEvent<string>) {
 </svelte:head>
 
 <Notification message={notice.message} type={notice.type} onClose={() => (notice = { message: '', type: 'info' })} />
+<LoadingOverlay visible={isUploading} message="Processing poster… extracting details" />
 
 <div class="map" bind:this={mapContainer}></div>
 
 <CoordinateDisplay {lng} {lat} {zoom} />
 
-<LayerToggle on:change={handleLayerChange} />
+<FabMenu
+  disabledUpload={isUploading}
+  initialLayer={layerMode}
+  theme={theme}
+  on:file={(e) => uploadPoster(e.detail)}
+  on:layerChange={(e) => handleLayerChange(new CustomEvent('change', { detail: e.detail }))}
+  on:themeChange={(e) => handleThemeChange(new CustomEvent('theme', { detail: e.detail }))}
+/>
 
-<FloatingUpload on:file={(e) => uploadPoster(e.detail)} disabled={isUploading} />
-<FloatingList on:open={() => (notice = { message: 'List coming soon.', type: 'info' })} />
+
+<EventSidebar on:focus={(e) => focusOnItems([e.detail])} />
 

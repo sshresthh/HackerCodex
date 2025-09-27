@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from openai import OpenAI
 import googlemaps
+import urllib.parse
+import requests
 import os
 import json
 import base64
@@ -106,6 +108,21 @@ def get_coordinates_from_location(location_string: str) -> dict:
                 "Longitude": str(location['lng'])
             }
     except Exception as e:
-        print(f"Error during geocoding: {e}")
+        # Google geocoding failed; attempt OpenStreetMap Nominatim as a fallback (no API key required)
+        try:
+            query = urllib.parse.quote(f"{location_string}, South Australia")
+            url = f"https://nominatim.openstreetmap.org/search?q={query}&format=json&limit=1"
+            headers = {"User-Agent": "Mapster.city/1.0 (contact@mapster.city)"}
+            resp = requests.get(url, headers=headers, timeout=10)
+            if resp.ok:
+                results = resp.json()
+                if results:
+                    return {
+                        "Latitude": str(results[0]["lat"]),
+                        "Longitude": str(results[0]["lon"])
+                    }
+        except Exception as e2:
+            print(f"OSM geocoding failed: {e2}")
 
+    # All methods failed
     return {"Latitude": "", "Longitude": ""}

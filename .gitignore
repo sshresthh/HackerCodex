@@ -33,5 +33,3 @@ venv/
 # IDE files
 .vscode/
 .idea/
-
-test.py
