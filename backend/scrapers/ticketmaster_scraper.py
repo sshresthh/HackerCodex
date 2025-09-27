@@ -78,7 +78,7 @@ def fetch_ticketmaster_events(debug=False):
                         "venue": "",
                         "description": "",
                         "organizer": "",
-                        "source": event.get("url", ""),
+                        "link": event.get("url", ""),
                         "price_range": "",
                         "category": "",
                         "image": ""
@@ -174,7 +174,7 @@ def fetch_ticketmaster_events(debug=False):
                         event_data["image"] = images[0]["url"]
                     
                     # Only add events with required fields
-                    if event_data["title"] and event_data["source"]:
+                    if event_data["title"] and event_data["link"]:
                         all_events.append(event_data)
                 
                 except Exception as e:

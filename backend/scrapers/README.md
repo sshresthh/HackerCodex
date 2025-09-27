@@ -28,9 +28,10 @@ source .venv/bin/activate   # Mac/Linux
 ## Install dependencies:
 pip install -r requirements.txt
 
-## (Optional) Create .env in project root for SerpAPI (Google Events) & Ticketmaster:
+## (Optional) Create .env in project root for SerpAPI (Google Events), Ticketmaster & OpenCage:
 SERPAPI_KEY=your_api_key_here
 TICKETMASTER_API_KEY=your_api_key_here
+OPENCAGE_KEY=your_api_key_here
 
 ## Each scraper is run from inside the backend/scrapers directory:
 cd backend/scrapers
