@@ -8,29 +8,13 @@ load_dotenv()
 # ========= CONFIG =========
 DATA_DIR = os.path.join(os.path.dirname(__file__), "scrapers", "data")
 OUTPUT_FILE = os.path.join(DATA_DIR, "normalized_events.json")
-OPENCAGE_KEY = os.getenv("OPENCAGE_KEY")  # set this in your .env
 
 # ========= HELPERS =========
-def geocode_opencage(address: str):
-    """Geocode address using OpenCage API."""
-    if not address:
-        return {"lat": None, "lng": None}
-    try:
-        url = "https://api.opencagedata.com/geocode/v1/json"
-        params = {"q": f"{address}, South Australia", "key": OPENCAGE_KEY, "limit": 1}
-        resp = requests.get(url, params=params)
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("results"):
-            coords = data["results"][0]["geometry"]
-            return {"lat": coords["lat"], "lng": coords["lng"]}
-    except Exception as e:
-        print(f"⚠️ Geocoding failed for {address}: {e}")
-    return {"lat": None, "lng": None}
+from utils.geocode import geocode_google
 
 # ========= NORMALIZERS =========
 def normalize_adelaidefestival(raw):
-    coords = geocode_opencage(raw.get("address"))
+    coords = geocode_google(raw.get("address"))
     return {
         "title": raw.get("title"),
         "date": raw.get("date"),
@@ -59,7 +43,7 @@ def normalize_eventbrite(raw):
     loc = raw.get("Location", "").split("\n")
     location = loc[1] if len(loc) > 1 else None
     address = loc[2] if len(loc) > 2 else None
-    coords = geocode_opencage(address)
+    coords = geocode_google(address)
 
     return {
         "title": raw.get("Title"),
@@ -80,7 +64,7 @@ def normalize_eventbrite(raw):
 
 def normalize_google(raw):
     addr = ", ".join(raw.get("address", [])) if raw.get("address") else None
-    coords = geocode_opencage(addr)
+    coords = geocode_google(addr)
     return {
         "title": raw.get("title"),
         "date": raw.get("date", {}).get("start_date"),
@@ -99,7 +83,7 @@ def normalize_google(raw):
     }
 
 def normalize_southaustralia(raw):
-    coords = geocode_opencage(raw.get("full_address"))
+    coords = geocode_google(raw.get("full_address"))
     return {
         "title": raw.get("title"),
         "date": raw.get("dates"),
