@@ -50,6 +50,7 @@
   }
 
   onMount(() => {
+    runSearch();
     if (visible) setTimeout(() => inputEl?.focus(), 0);
   });
 
