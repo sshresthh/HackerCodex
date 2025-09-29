@@ -29,7 +29,11 @@
 
   async function fetchPage(reset = false) {
     const supabase = getSupabaseClient();
-    if (!supabase) { errorMsg = 'Supabase not configured.'; return; }
+    if (!supabase) {
+      // Supabase client might not be ready yet; retry shortly
+      setTimeout(() => fetchPage(reset), 400);
+      return;
+    }
     loading = true; errorMsg = '';
 
     const from = (reset ? 0 : page * pageSize);
