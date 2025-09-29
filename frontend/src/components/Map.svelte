@@ -24,7 +24,8 @@ import SearchPanel from './SearchPanel.svelte';
 	let zoom = initialState.zoom;
     const darkStyleUrl = 'mapbox://styles/andrwong/cmg0l6d2r001e01ps1i8mgeyh';
     const lightStyleUrl = 'mapbox://styles/andrwong/cmg0m3l32009201rh7v66cr21';
-    let theme: 'dark' | 'light' = 'light';
+    const storedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
+    let theme: 'dark' | 'light' = storedTheme === 'light' ? 'light' : 'dark';
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
     let currentPopup: mapboxgl.Popup | null = null;
@@ -586,6 +587,7 @@ function focusOnItems(items: any[]) {
 function handleThemeChange(e: CustomEvent<string>) {
     const next = (e.detail as 'dark' | 'light');
     theme = next;
+    try { localStorage.setItem('theme', next); } catch {}
     if (map) {
         map.setStyle(theme === 'dark' ? darkStyleUrl : lightStyleUrl);
     }
