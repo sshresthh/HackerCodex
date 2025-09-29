@@ -18,11 +18,10 @@
 
   // Mobile expandable state
   let isMobile = false;
-  let open = false;
 
   function updateViewport() {
     isMobile = window.matchMedia('(max-width: 640px)').matches;
-    if (!isMobile) open = true; // always open on desktop
+    // no collapse behaviour; nothing to do
   }
 
   onMount(() => {
@@ -56,7 +55,7 @@
   }
 </script>
 
-<div class="fab-menu {open ? 'open' : 'closed'}" role="button" tabindex="0" aria-label="Toggle actions" on:click={() => { if (isMobile) open = !open; }} on:keydown={(e)=> (e.key==='Enter'||e.key===' ') && isMobile && (open = !open)}>
+<div class="fab-menu" >
   <!-- Always-visible actions -->
   <button class="fab-item action-upload" aria-label="Upload poster" on:click|stopPropagation={triggerUpload} disabled={disabledUpload} title="Upload poster">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
@@ -131,8 +130,6 @@
     .fab-menu { right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 10px; }
     .fab-item { width: 56px; height: 56px; }
 
-    /* Collapse items when menu closed */
-    .fab-menu.closed .fab-item:not(:first-child) { pointer-events: none; opacity: 0; transform: scale(0.5) translateY(20px); height: 0; margin: 0; }
-    /* first child remains visible */
+    /* previously collapsed state removed */
   }
 </style>
