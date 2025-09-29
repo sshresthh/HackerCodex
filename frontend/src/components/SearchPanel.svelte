@@ -50,7 +50,10 @@
   }
 
   onMount(() => {
-    if (visible) setTimeout(() => inputEl?.focus(), 0);
+    if (visible) {
+      runSearch();
+      setTimeout(() => inputEl?.focus(), 0);
+    }
   });
 </script>
 
@@ -61,6 +64,7 @@
         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#9ca3af" aria-hidden="true"><path d="M10 4a6 6 0 104.472 10.05l4.239 4.239 1.414-1.414-4.239-4.239A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/></svg>
         <input bind:this={inputEl} class="input" placeholder="Search events, venues, categories..." bind:value={query} on:keydown={handleKey} />
         <button class="btn" on:click={runSearch} aria-label="Run search">Search</button>
+        <button class="close-btn" aria-label="Close" on:click={() => dispatch('close')}>&times;</button>
       </div>
       {#if errorMsg}
         <div class="err">{errorMsg}</div>
@@ -99,6 +103,8 @@
   .input { flex: 1; height: 40px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 0 12px; color: #f8fafc; outline: none; }
   .input::placeholder { color: #94a3b8; }
   .btn { background: #22d3ee; color: #111827; border: none; border-radius: 10px; height: 40px; padding: 0 14px; font-weight: 700; cursor: pointer; }
+  .close-btn { background: transparent; border: none; color: #cbd5e1; font-size: 28px; line-height: 1; cursor: pointer; padding: 0 8px; }
+  .close-btn:hover { color: #f87171; }
   .results { max-height: 50vh; overflow: auto; padding: 8px; }
   .item { width: 100%; text-align: left; background: transparent; border: none; padding: 10px 12px; border-radius: 10px; color: #e5e7eb; cursor: pointer; }
   .item:hover { background: rgba(255,255,255,0.06); }
@@ -129,5 +135,6 @@
     .item:hover { background: rgba(0,0,0,0.05); }
     .sub { color: #475569; }
     .err, .loading, .empty { color: #334155; }
+    .close-btn { color: #475569; font-size: 26px; }
   }
 </style>
