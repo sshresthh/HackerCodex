@@ -7,8 +7,15 @@
 
   const dispatch = createEventDispatcher<{ focus: any }>();
 
-  // Sidebar is now always open
-  const collapsed: boolean = false;
+  // Mobile bottom-sheet collapsed state
+  let collapsed: boolean = false;
+  let isMobile = false;
+
+  function updateViewport() {
+    isMobile = window.matchMedia('(max-width: 640px)').matches;
+    if (isMobile && collapsed === false) collapsed = true; // default collapsed on mobile
+    if (!isMobile) collapsed = false; // always open on desktop
+  }
 
   let query = '';
   let loading = false;
@@ -61,10 +68,17 @@
   function loadMore() { page += 1; fetchPage(false); }
   function select(e: any) { selectedId = e?.id ?? null; dispatch('focus', e); }
 
-  onMount(() => { fetchPage(true); });
+  onMount(() => {
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  });
 </script>
 
-<div class="sidebar {collapsed ? 'collapsed' : 'open'}" bind:this={sidebarEl}>
+<div class="sidebar {isMobile ? 'mobile' : 'desktop'} {collapsed ? 'collapsed' : 'open'}" bind:this={sidebarEl}>
+  {#if isMobile}
+    <button type="button" class="drag-handle" aria-label="Toggle events panel" on:click={() => collapsed = !collapsed} on:keydown={(e)=> (e.key==='Enter'||e.key===' ') && (collapsed=!collapsed)}></button>
+  {/if}
   <!-- handle and close buttons removed -->
 
   <div class="panel">
@@ -151,7 +165,12 @@
   .list::-webkit-scrollbar { width: 8px; }
   .list::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 9999px; }
 
+  /* Mobile bottom-sheet styles */
   @media (max-width: 640px) {
-    .sidebar.open { width: min(92vw, 420px); }
+    .sidebar.desktop { display: none; }
+    .sidebar.mobile { left: 0; right: 0; width: 100vw; height: 60vh; top: auto; bottom: 0; border-left: 1px solid rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06); border-bottom: none; border-radius: 14px 14px 0 0; overflow: hidden; backdrop-filter: blur(10px); }
+    .sidebar.mobile.collapsed { transform: translateY(calc(100% - 48px)); }
+    .drag-handle { width: 42px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.35); margin: 8px auto 4px auto; cursor: pointer; }
+    .top { padding-top: 0; }
   }
 </style>

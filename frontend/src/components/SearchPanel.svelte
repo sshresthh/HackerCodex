@@ -55,7 +55,7 @@
 </script>
 
 {#if visible}
-  <div class="search-overlay" on:keydown={handleKey}>
+  <div class="search-overlay" role="dialog" aria-modal="true" tabindex="-1" on:keydown={handleKey}>
     <div class="panel" role="dialog" aria-label="Search events">
       <div class="row">
         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#9ca3af" aria-hidden="true"><path d="M10 4a6 6 0 104.472 10.05l4.239 4.239 1.414-1.414-4.239-4.239A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/></svg>
@@ -85,7 +85,15 @@
 
 <style>
   .search-overlay { position: fixed; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 16px; z-index: 1100; pointer-events: none; }
-  .panel { pointer-events: auto; width: min(720px, 92vw); background: rgba(17,24,39,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+  .panel {
+    pointer-events: auto;
+    width: min(720px, 92vw);
+    background: rgba(17,24,39,0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
   .row { display: flex; gap: 10px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
   .icon { width: 20px; height: 20px; }
   .input { flex: 1; height: 40px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 0 12px; color: #f8fafc; outline: none; }
@@ -100,6 +108,26 @@
   .err { color: #fda4af; }
 
   @media (max-width: 640px) {
-    .panel { width: 94vw; }
+    .search-overlay { align-items: flex-start; padding-top: 8px; }
+    .panel {
+      width: 92vw;
+      background: rgba(255,255,255,0.96);
+      color: #111827;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.16);
+      backdrop-filter: blur(4px);
+    }
+    .row { border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .input { background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.10); color: #111827; }
+    .input::placeholder { color: #6b7280; }
+    .btn { background: #111827; color: #f9fafb; }
+    .results {
+      max-height: calc(56px * 3 + 12px); /* show ~3 items */
+      overflow-y: auto;
+    }
+    .item { color: #111827; }
+    .item:hover { background: rgba(0,0,0,0.05); }
+    .sub { color: #475569; }
+    .err, .loading, .empty { color: #334155; }
   }
 </style>

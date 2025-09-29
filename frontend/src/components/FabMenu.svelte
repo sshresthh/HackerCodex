@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
 
   // Events: file (File), openList (void), layerChange ("heat"|"pins"|"normal")
   const dispatch = createEventDispatcher<{
@@ -15,6 +15,21 @@
 
   let layer: 'heat' | 'pins' | 'normal' = initialLayer;
   let inputEl: HTMLInputElement | null = null;
+
+  // Mobile expandable state
+  let isMobile = false;
+  let open = false;
+
+  function updateViewport() {
+    isMobile = window.matchMedia('(max-width: 640px)').matches;
+    if (!isMobile) open = true; // always open on desktop
+  }
+
+  onMount(() => {
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  });
 
   function triggerUpload() {
     if (!disabledUpload) inputEl?.click();
@@ -41,15 +56,15 @@
   }
 </script>
 
-<div class="fab-menu">
+<div class="fab-menu {open ? 'open' : 'closed'}" role="button" tabindex="0" aria-label="Toggle actions" on:click={() => { if (isMobile) open = !open; }} on:keydown={(e)=> (e.key==='Enter'||e.key===' ') && isMobile && (open = !open)}>
   <!-- Always-visible actions -->
-  <button class="fab-item action-upload" aria-label="Upload poster" on:click={triggerUpload} disabled={disabledUpload} title="Upload poster">
+  <button class="fab-item action-upload" aria-label="Upload poster" on:click|stopPropagation={triggerUpload} disabled={disabledUpload} title="Upload poster">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
       <path d="M9 3l-1.172 2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-2.828L15 3H9zm3 14a5 5 0 110-10 5 5 0 010 10zm0-2a3 3 0 100-6 3 3 0 000 6z"/>
     </svg>
   </button>
 
-  <button class="fab-item action-layer" aria-label="Change layer" on:click={cycleLayer} title="Change layer">
+  <button class="fab-item action-layer" aria-label="Change layer" on:click|stopPropagation={cycleLayer} title="Change layer">
     {#if layer === 'heat'}
       <span class="emoji">🔥</span>
     {:else if layer === 'pins'}
@@ -61,7 +76,7 @@
     {/if}
   </button>
 
-  <button class="fab-item action-theme" aria-label="Toggle theme" on:click={toggleTheme} title="Toggle theme">
+  <button class="fab-item action-theme" aria-label="Toggle theme" on:click|stopPropagation={toggleTheme} title="Toggle theme">
     {#if theme === 'dark'}
       <span class="emoji">🌞</span>
     {:else}
@@ -83,6 +98,7 @@
     align-items: flex-end;
     gap: 12px;
     z-index: 1000;
+    transition: height 200ms ease;
   }
 
   .fab-item {
@@ -97,7 +113,7 @@
     background: rgba(17,24,39,0.88);
     color: #fff;
     box-shadow: 0 10px 30px rgba(0,0,0,0.28);
-    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
   }
 
   .fab-item:hover { background: rgba(17,24,39,0.92); box-shadow: 0 12px 36px rgba(0,0,0,0.34); transform: translateY(-1px); }
@@ -114,8 +130,9 @@
   @media (max-width: 640px) {
     .fab-menu { right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 10px; }
     .fab-item { width: 56px; height: 56px; }
-    /* Keep only the upload action visible on mobile */
-    .fab-item.action-layer,
-    .fab-item.action-theme { display: none; }
+
+    /* Collapse items when menu closed */
+    .fab-menu.closed .fab-item:not(:first-child) { pointer-events: none; opacity: 0; transform: scale(0.5) translateY(20px); height: 0; margin: 0; }
+    /* first child remains visible */
   }
 </style>

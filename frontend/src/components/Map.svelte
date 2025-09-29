@@ -14,6 +14,7 @@ import Notification from './Notification.svelte';
 import FabMenu from './FabMenu.svelte';
 import LoadingOverlay from './LoadingOverlay.svelte';
 import EventSidebar from './EventSidebar.svelte';
+import SearchPanel from './SearchPanel.svelte';
 
 	let map: mapboxgl.Map;
     let mapContainer: HTMLDivElement;
@@ -27,6 +28,7 @@ import EventSidebar from './EventSidebar.svelte';
     let isUploading = false;
     let eventMarker: mapboxgl.Marker | null = null;
     let currentPopup: mapboxgl.Popup | null = null;
+    let searchOpen = false;
     let notice: { message: string; type: 'info' | 'error' | 'success' } = { message: '', type: 'info' };
 let originalXHR: typeof XMLHttpRequest;
 let originalFetch: typeof fetch;
@@ -617,4 +619,37 @@ function handleLayerChange(e: CustomEvent<string>) {
 
 
 <EventSidebar on:focus={(e) => focusOnItems([e.detail])} />
+
+<!-- Floating search button (mobile-friendly) -->
+<button class="search-btn" aria-label="Search events" on:click={() => (searchOpen = true)}>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M10 4a6 6 0 104.472 10.05l4.239 4.239 1.414-1.414-4.239-4.239A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/></svg>
+</button>
+
+<SearchPanel visible={searchOpen} on:focus={(e)=>focusOnItems([e.detail])} on:close={()=>searchOpen=false} />
+
+<style>
+.search-btn {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(17,24,39,0.88);
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.search-btn:hover { background: rgba(17,24,39,0.92); }
+.search-btn:active { transform: scale(0.95); }
+
+@media (max-width: 640px) {
+  .search-btn { top: 10px; left: 10px; width: 40px; height: 40px; }
+}
+</style>
 
