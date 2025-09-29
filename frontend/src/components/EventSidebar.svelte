@@ -58,14 +58,20 @@
       loading = false; return;
     }
 
+    const rows = (data || []).map((e:any)=>({ ...e, link: e.link || e.url || '' }));
     if (reset) {
-      events = (data || []).map((e:any)=>({ ...e, link: e.link || e.url || '' }));
+      events = rows;
       page = 0;
     } else {
-      events = [...events, ...(data || [])];
+      events = [...events, ...rows];
     }
     totalShown = events.length;
     loading = false;
+
+    // Auto-retry once if no results on initial load
+    if (!term && reset && events.length === 0) {
+      setTimeout(() => fetchPage(true), 800);
+    }
   }
 
   function search() { fetchPage(true); }

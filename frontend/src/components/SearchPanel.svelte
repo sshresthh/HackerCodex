@@ -50,7 +50,7 @@
   }
 
   onMount(() => {
-    runSearch();
+    setTimeout(() => runSearch(), 300); // slight delay to ensure backend ready
     if (visible) setTimeout(() => inputEl?.focus(), 0);
   });
 
