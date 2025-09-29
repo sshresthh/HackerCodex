@@ -50,11 +50,13 @@
   }
 
   onMount(() => {
-    if (visible) {
-      runSearch();
-      setTimeout(() => inputEl?.focus(), 0);
-    }
+    if (visible) setTimeout(() => inputEl?.focus(), 0);
   });
+
+  $: if (visible) {
+    // run initial search when panel opens
+    runSearch();
+  }
 </script>
 
 {#if visible}
