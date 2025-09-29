@@ -26,6 +26,15 @@
   let errorMsg = '';
   let sidebarEl: HTMLDivElement | null = null;
   let selectedId: any = null;
+  let attempt = 0;
+
+  $: if (!loading && events.length === 0 && attempt < 4) {
+    const sup = getSupabaseClient();
+    if (sup) {
+      attempt += 1;
+      fetchPage(true);
+    }
+  }
 
   async function fetchPage(reset = false) {
     const supabase = getSupabaseClient();
