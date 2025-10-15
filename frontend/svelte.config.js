@@ -14,6 +14,9 @@ const config = {
 		}),
 		prerender: {
 			entries: ['*'] // prerender all routes
+		},
+		paths: {
+			relative: false // Required for PostHog session replay to work correctly
 		}
 	},
 	compilerOptions: {
